@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "punto-vetna-personalizado": {
+    "elzaguan-punto-venta-sucursal": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -61,10 +61,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "punto-vetna-personalizado:build:production"
+              "buildTarget": "elzaguan-punto-venta-sucursal:build:production"
             },
             "development": {
-              "buildTarget": "punto-vetna-personalizado:build:development"
+              "buildTarget": "elzaguan-punto-venta-sucursal:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -18,6 +18,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, punto-vetna-personalizado');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, elzaguan-punto-venta-sucursal');
   });
 });

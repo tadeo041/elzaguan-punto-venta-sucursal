@@ -14,7 +14,7 @@ const createWindow = () => {
   if (process.env.NODE_ENV === 'development') {
     win.loadURL('http://localhost:4200');
   } else {
-    win.loadFile(path.join(__dirname, 'dist/punto-vetna-personalizado/index.html'));
+    win.loadFile(path.join(__dirname, 'dist/elzaguan-punto-venta-sucursal/index.html'));
   }
 };
 
