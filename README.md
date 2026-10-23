@@ -1,59 +1,103 @@
-# PuntoVetnaPersonalizado
+# El Zaguán — Punto de Venta (Sucursal)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.3.
+> Sistema de punto de venta de escritorio para sucursal de El Zaguán, construido con **Angular + Electron**.
 
-## Development server
+## Tabla de contenido
 
-To start a local development server, run:
+1. [Descripción](#-descripción)
+2. [Características](#-características)
+3. [Tecnologías](#-tecnologías)
+4. [Requisitos previos](#-requisitos-previos)
+5. [Instalación](#-instalación)
+6. [Uso](#-uso)
+
+---
+
+## Descripción
+
+**El Zaguán Punto de Venta (Sucursal)** es una aplicación de escritorio
+para gestionar las operaciones diarias de una sucursal: inventario,
+clientes, propina y reportes .
+
+Está construida con **Angular** (interfaz) y **Electron** (empaquetado como
+aplicación de escritorio multiplataforma).
+
+---
+
+## Características
+
+- Gestión de inventario y productos
+- Administración de clientes
+- Reportes de ventas, inventario y propinas 
+- Autenticación de usuarios
+- Aplicación de escritorio (Windows, macOS, Linux)
+
+---
+
+## Tecnologías
+
+| Tecnología | Versión | Uso |
+|------------|---------|-----|
+| [Angular](https://angular.dev/) | `^20.3.0` | Framework de la interfaz |
+| [TypeScript](https://www.typescriptlang.org/) | `~5.9.2` | Lenguaje tipado |
+| [RxJS](https://rxjs.dev/) | `~7.8.0` | Programación reactiva |
+| [Zone.js](https://github.com/angular/zone.js) | `~0.15.0` | Contexto de cambio de Angular |
+| [Electron](https://www.electronjs.org/) | `^44.0.0` | Aplicación de escritorio |
+| [electron-builder](https://www.electron.build/) | `^26.15.3` | Empaquetado y distribución |
+| [Angular CLI](https://angular.dev/tools/cli) | `^20.3.3` | Herramientas de Angular |
+| [Karma](https://karma-runner.github.io/) + [Jasmine](https://jasmine.github.io/) | `~6.4.0` / `~5.9.0` | Pruebas unitarias |
+| [Prettier](https://prettier.io/) | (config en `package.json`) | Formato de código |
+| [concurrently](https://www.npmjs.com/package/concurrently) | `^10.0.5` | Ejecutar varios scripts a la vez |
+| [cross-env](https://www.npmjs.com/package/cross-env) | `^10.1.0` | Variables de entorno multiplataforma |
+| [wait-on](https://www.npmjs.com/package/wait-on) | `^9.1.0` | Esperar a que el dev server esté listo |
+
+---
+
+## Requisitos previos
+
+- **Node.js** `>= 20.x` (recomendado para Angular 20)
+- **npm** `>= 10.x`
+- **Git** `>= 2.x`
+
+Verifica las versiones:
 
 ```bash
-ng serve
+node --version
+npm --version
+git --version
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Instalación
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+### 1. Clonar el repositorio
 
 ```bash
-ng generate component component-name
+git clone https://github.com/tadeo041/elzaguan-punto-venta-sucursal.git
+cd elzaguan-punto-venta-sucursal
 ```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+### 2. Cambiar a la rama de desarrollo
 
 ```bash
-ng generate --help
+git checkout develop
 ```
-
-## Building
-
-To build the project run:
+### 3. Instalar dependencias
 
 ```bash
-ng build
+npm install
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
+## Uso 
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### Modo desarrollo (Angular + Electron juntos)
 
 ```bash
-ng test
+npm run electron:dev
 ```
+Este comando:
+1. Levanta el servidor de Angular en http://localhost:4200.
+2. Espera a que esté listo (wait-on).
+3. Abre la ventana de Electron apuntando a ese servidor.
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
