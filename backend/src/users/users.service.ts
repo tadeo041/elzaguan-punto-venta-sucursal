@@ -99,5 +99,28 @@ export class UsersService {
         where: { role },
         select: { id: true, name: true, username: true, role: true, isActive: true }
         });
+    }
+    
+    // 8. Validar credenciales para el Login
+    async validateUser(username: string, pass: string): Promise<any> {
+        // Buscamos al usuario incluyendo el hash de la contraseña
+        const user = await this.userRepository.findOne({ 
+        where: { username },
+        select: { id: true, name: true, username: true, role: true, isActive: true, passwordHash: true } 
+        });
+
+        if (!user) return null;
+        if (!user.isActive) {
+        throw new ConflictException('El usuario está desactivado. Contacte al gerente.');
+        }
+
+        // Comparamos la contraseña enviada con el hash guardado en la BD
+        const isMatch = await bcrypt.compare(pass, user.passwordHash);
+        if (isMatch) {
+        // Si es correcta, quitamos el hash por seguridad antes de devolver el usuario
+        const { passwordHash, ...result } = user;
+        return result;
+        }
+        return null;
     }    
 }

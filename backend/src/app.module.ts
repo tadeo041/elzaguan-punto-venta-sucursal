@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/user.entity';
 // Modulos 
 import { UsersModule } from './users/users.module'; 
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -13,9 +14,10 @@ import { UsersModule } from './users/users.module';
       type: 'better-sqlite3',
       database: 'pos-database.sqlite',
       entities: [User], 
-      synchronize: true, 
+      synchronize: true,     
     }),
-    UsersModule, 
+    UsersModule,
+    AuthModule, 
   ],
   controllers: [AppController],
   providers: [AppService],
