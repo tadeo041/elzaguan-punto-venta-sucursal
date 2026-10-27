@@ -1,28 +1,13 @@
 # El Zaguán — Punto de Venta (Sucursal)
 
-> Sistema de punto de venta de escritorio para sucursal de El Zaguán, construido con **Angular + Electron**.
+> Interfaz de usuario del punto de venta construida con **Angular** y empaquetada para escritorio con **Electron**. 
 
-## Tabla de contenido
+## Descripción General
 
-1. [Descripción](#-descripción)
-2. [Características](#-características)
-3. [Tecnologías](#-tecnologías)
-4. [Requisitos previos](#-requisitos-previos)
-5. [Instalación](#-instalación)
-6. [Uso](#-uso)
+Este módulo contiene la interfaz visual que utiliza el cajero en la caja de cobro. Se comunica mediante peticiones HTTP con el backend local (`http://localhost:3000/api`) para consultar productos, registrar ventas y generar reportes.
 
----
+Electron actúa como el contenedor de la aplicación: se encarga de levantar la ventana nativa de Windows/macOS/Linux y, en modo producción, se encargará también de arrancar el servidor de NestJS en segundo plano.
 
-## Descripción
-
-**El Zaguán Punto de Venta (Sucursal)** es una aplicación de escritorio
-para gestionar las operaciones diarias de una sucursal: inventario,
-clientes, propina y reportes .
-
-Está construida con **Angular** (interfaz) y **Electron** (empaquetado como
-aplicación de escritorio multiplataforma).
-
----
 
 ## Características
 
@@ -30,9 +15,7 @@ aplicación de escritorio multiplataforma).
 - Administración de clientes
 - Reportes de ventas, inventario y propinas 
 - Autenticación de usuarios
-- Aplicación de escritorio (Windows, macOS, Linux)
-
----
+- Aplicación de escritorio (Windows)
 
 ## Tecnologías
 
@@ -51,36 +34,20 @@ aplicación de escritorio multiplataforma).
 | [cross-env](https://www.npmjs.com/package/cross-env) | `^10.1.0` | Variables de entorno multiplataforma |
 | [wait-on](https://www.npmjs.com/package/wait-on) | `^9.1.0` | Esperar a que el dev server esté listo |
 
----
-
 ## Requisitos previos
 
-- **Node.js** `>= 20.x` (recomendado para Angular 20)
-- **npm** `>= 10.x`
-- **Git** `>= 2.x`
-
-Verifica las versiones:
-
-```bash
-node --version
-npm --version
-git --version
-```
+Antes de iniciar el frontend, asegúrate de tener el **backend de NestJS corriendo** en el puerto `3000`, de lo contrario las peticiones HTTP fallarán.
 
 ## Instalación
 
-### 1. Clonar el repositorio
 
-```bash
-git clone https://github.com/tadeo041/elzaguan-punto-venta-sucursal.git
-cd elzaguan-punto-venta-sucursal
-```
-### 2. Cambiar a la rama de desarrollo
+### 1. Cambiar a la rama de desarrollo
 
 ```bash
 git checkout develop
 ```
-### 3. Instalar dependencias
+
+### 2. Instalar dependencias
 
 ```bash
 npm install
@@ -99,5 +66,3 @@ Este comando:
 1. Levanta el servidor de Angular en http://localhost:4200.
 2. Espera a que esté listo (wait-on).
 3. Abre la ventana de Electron apuntando a ese servidor.
-
----
