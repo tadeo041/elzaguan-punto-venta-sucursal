@@ -1,7 +1,7 @@
 {
   "name": "elzaguan-punto-venta-sucursal",
   "version": "0.0.0",
-  "main": "electron-main.js",  
+  "main": "electron-main.js",
   "scripts": {
     "ng:serve": "ng serve",
     "electron:dev": "cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
@@ -27,7 +27,10 @@
     "@angular/forms": "^20.3.0",
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "postcss": "^8.5.32",
     "rxjs": "~7.8.0",
+    "tailwindcss": "^4.3.3",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
