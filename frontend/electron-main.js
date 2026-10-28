@@ -5,6 +5,8 @@ const createWindow = () => {
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
+    title: 'El Zaguán - Punto de Venta',        
+    autoHideMenuBar: true, 
     webPreferences: {
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
