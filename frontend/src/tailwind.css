@@ -1,1 +1,97 @@
 @import "tailwindcss";
+
+@theme {
+    /* COLORES BASE */
+        --color-primary: #D5720D;       
+        --color-primary-light: #B45309;
+        --color-bg-login: #ffffff; 
+        --color-bg-body: #FEFAEC; 
+    
+    /* JERARQUÍA DE TEXTOS (Tipografía) */
+        --color-heading: #111827;       
+        --color-body: #374151;          
+        --color-muted: #6b7280;         
+        --color-label: #4b5563;         
+
+    /* BOTONES PRIMARIOS */
+        --color-btn-primary: #D5720D;       
+        --color-btn-primary-hover: #B45309; 
+        --color-btn-primary-active: #92400E; 
+        --color-btn-primary-disabled: #E5E7EB; 
+        --color-btn-primary-text: #ffffff;  
+
+    /* BOTONES SECUNDARIOS */
+        --color-btn-secondary: #ffffff;
+        --color-btn-secondary-border: #D1D5DB;
+        --color-btn-secondary-text: #374151;
+        --color-btn-secondary-hover: #F3F4F6;
+        --color-btn-secondary-active: #E5E7EB;
+        --color-btn-secondary-disabled: #F9FAFB;
+        --color-btn-secondary-text-disabled: #9CA3AF;
+
+    /* BOTONES TERCIARIOS */
+        --color-btn-tertiary: transparent;
+        --color-btn-tertiary-text: #D5720D; 
+        --color-btn-tertiary-hover: #FEF3C7; 
+        --color-btn-tertiary-active: #FDE68A;
+
+    /* BOTONES DE ICONO */
+        --color-btn-icon: transparent;
+        --color-btn-icon-text: #6b7280;
+        --color-btn-icon-hover: #F3F4F6;
+        --color-btn-icon-active: #E5E7EB;
+        --color-btn-icon-disabled: transparent;
+        --color-btn-icon-text-disabled: #D1D5DB;
+
+    /* INPUTS Y FORMULARIOS */
+        --color-input-bg: #ffffff;
+        --color-input-border: #D1D5DB;
+        --color-input-text: #111827;
+        --color-input-placeholder: #9CA3AF;
+        --color-input-focus-ring: #BFDBFE; 
+    
+    /* Estados del Input */
+        --color-input-focus-border: #2563EB; 
+        --color-input-focus-ring: rgba(213, 114, 13, 0.2); 
+        --color-input-error-border: #EF4444;
+        --color-input-error-text: #B91C1C;
+        --color-input-error-bg: #FEF2F2;
+        --color-input-disabled-bg: #F3F4F6;
+        --color-input-disabled-text: #9CA3AF;
+    
+    /* Label del Input */
+        --color-label-text: #374151;
+        --color-label-required: #EF4444; 
+
+    /* TOOLTIPS */
+        --color-tooltip-bg: #1F2937; 
+        --color-tooltip-text: #F9FAFB; 
+
+    /* ESQUELETOS DE CARGA */
+        --color-skeleton-bg: #E5E7EB; 
+        --color-skeleton-shimmer: #F3F4F6; 
+
+    /* EMPTY STATES */
+        --color-empty-icon: #9CA3AF;
+        --color-empty-title: #374151;
+        --color-empty-text: #6B7280;
+
+    /* ICONOS */
+        --color-icon: #374151;          
+        --color-icon-inverse: #ffffff;  
+
+    /* TABLAS */
+        --color-table-header: #f3f4f6;  
+        --color-table-header-text: #111827; 
+        --color-table-row: #ffffff;     
+        --color-table-row-alt: #f9fafb; 
+        --color-table-text: #4b5563;    
+        --color-table-border: #e5e7eb;  
+
+    /* SIDEBAR */
+        --color-sidebar-bg: #1f2937;         
+        --color-sidebar-text: #e5e7eb;       
+        --color-sidebar-hover-bg: #374151;   
+        --color-sidebar-active-bg: #D5720D;  
+        --color-sidebar-active-text: #ffffff; 
+}
