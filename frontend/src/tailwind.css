@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 @theme {
+
     /* COLORES BASE */
+        --color-bg-white: #ffffff;
         --color-primary: #D5720D;       
         --color-primary-light: #B45309;
         --color-bg-login: #ffffff; 
@@ -82,19 +84,48 @@
         --color-icon-inverse: #ffffff;  
 
     /* TABLAS */
-        --color-table-header: #f3f4f6;  
-        --color-table-header-text: #111827; 
+        --color-table-header-bg: #f9fafb;  
+        --color-table-header-text: #4a5565;
+        --color-table-text: #364153;
+        --color-table-text-impor: #101828;       
         --color-table-row: #ffffff;     
         --color-table-row-alt: #f9fafb; 
-        --color-table-text: #4b5563;    
+        --color-table-row-hover: #f3f4f6 ;
         --color-table-border: #e5e7eb;  
+        --color-table-boton-bg-hover: #eff6ff;
+        --color-table-boton-text-hove: #193cb8;
+        --color-table-footer-bg: #f9fafb ;         
 
     /* SIDEBAR */
         --color-sidebar-bg: #ffffff;         
         --color-sidebar-text: #5C5E64;       
         --color-sidebar-hover-bg: #FEFAEC;  
         --color-sidebar-hover-text: #D97706;  
-
         --color-sidebar-active-bg: #FEFAEC;  
         --color-sidebar-active-text: #D97706; 
+
+    /* ENCABEZADO PRINCIPAL*/
+        --color-header-bg: #ffffff;
+        --color-header-bg-icon: #FEFAEC;
+        --color-header-icon: #D97706;    
+    
+    /* TARJETA DASHBOARD */
+    --color-tarjeta-bg: #ffffff;
+    --color-tarjeta-valor: #0F172A;
+    --color-tarjeta-label: #334155;
+
+
+    /* CHIPS DE ESTADO */
+    --color-chip-verde-bg: #f0fdf4;
+    --color-chip-verde-text: #166534;
+    
+    --color-chip-azul-bg: #eff6ff;
+    --color-chip-azul-text: #1e40af;
+    
+    --color-chip-amarillo-bg: #fefce8;
+    --color-chip-amarillo-text: #854d0e;
+    
+    --color-chip-rojo-bg: #fef2f2;
+    --color-chip-rojo-text: #991b1b;
+
 }
