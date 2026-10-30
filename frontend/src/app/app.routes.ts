@@ -4,18 +4,21 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout';
 import { AuthGuard } from '../app/guards/auth-guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent },
-  {
-    path: '',
-    component: MainLayoutComponent,
-    canActivate: [AuthGuard],
-    children: [
-      // Aquí irán las rutas hijas
-      { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
-      
-      // Por defecto, si entran a la raíz (/) y están logueados, van al dashboard
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
-    ]
-  },
-  { path: '**', redirectTo: 'login' }
+    { path: 'login', component: LoginComponent },
+        {
+            path: '',
+            component: MainLayoutComponent,
+            canActivate: [AuthGuard],
+            children: [
+                { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
+                
+                // Rutas de Propina
+                { path: 'propina/panel', loadComponent: () => import('./pages/propina/panel-general/panel-general').then(m => m.PanelGeneral) },
+                { path: 'propina/distribucion', loadComponent: () => import('./pages/propina/distribucion/distribucion').then(m => m.Distribucion) },
+                { path: 'propina/reportes', loadComponent: () => import('./pages/propina/reportes/reportes').then(m => m.Reportes) },
+                
+                { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+            ]
+        },
+    { path: '**', redirectTo: 'login' }
 ];
