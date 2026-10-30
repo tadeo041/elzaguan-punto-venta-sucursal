@@ -6,6 +6,7 @@
         --color-primary-light: #B45309;
         --color-bg-login: #ffffff; 
         --color-bg-body: #FEFAEC; 
+        --color-border-general: #E2E8F0;
     
     /* JERARQUÍA DE TEXTOS (Tipografía) */
         --color-heading: #111827;       
@@ -89,9 +90,11 @@
         --color-table-border: #e5e7eb;  
 
     /* SIDEBAR */
-        --color-sidebar-bg: #1f2937;         
-        --color-sidebar-text: #e5e7eb;       
-        --color-sidebar-hover-bg: #374151;   
-        --color-sidebar-active-bg: #D5720D;  
-        --color-sidebar-active-text: #ffffff; 
+        --color-sidebar-bg: #ffffff;         
+        --color-sidebar-text: #5C5E64;       
+        --color-sidebar-hover-bg: #FEFAEC;  
+        --color-sidebar-hover-text: #D97706;  
+
+        --color-sidebar-active-bg: #FEFAEC;  
+        --color-sidebar-active-text: #D97706; 
 }
