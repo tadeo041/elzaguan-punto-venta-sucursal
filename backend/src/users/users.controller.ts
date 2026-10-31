@@ -3,9 +3,13 @@ import { UsersService } from './users.service';
 import { User, UserRole } from './user.entity';
 import { CreateUserDto } from './create-user.dto';
 import { UpdateUserDto } from './update-user.dto';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth  } from '@nestjs/swagger';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('users')
+@ApiBearerAuth()
+@UseGuards(AuthGuard('jwt')) 
 @Controller('users')
 export class UsersController {
     constructor(private readonly usersService: UsersService) {}
