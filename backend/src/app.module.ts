@@ -5,24 +5,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Entidades
 import { User } from './users/user.entity';
-import { Tip } from './tips/tip.entity'; 
+import { Tip } from './tips/tip.entity';
+import { TipHistory } from './tips/tip-history.entity' 
 
 // Modulos 
 import { UsersModule } from './users/users.module'; 
 import { AuthModule } from './auth/auth.module';
 import { TipsModule } from './tips/tips.module';
 
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'better-sqlite3',
       database: 'pos-database.sqlite',
-      entities: [User, Tip], 
+      entities: [User, Tip,TipHistory], 
       synchronize: true,     
     }),
     UsersModule,
     AuthModule,
-    TipsModule, 
+    TipsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

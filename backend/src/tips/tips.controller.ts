@@ -1,28 +1,28 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
-import { UseGuards } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { Controller, Get, Post, Body, Query, Param, UseGuards, Req } from '@nestjs/common';
 import { TipsService } from './tips.service';
 import { CreateTipDto } from './create-tip.dto';
 import { FilterTipDto } from './filter-tip.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth  } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('tips')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt')) 
+@UseGuards(AuthGuard('jwt'))
 @Controller('tips')
 export class TipsController {
     constructor(private readonly tipsService: TipsService) { }
 
     @Post()
     @ApiOperation({ summary: 'Registrar una nueva propina' })
-    create(@Body() createTipDto: CreateTipDto) {
-        return this.tipsService.create(createTipDto);
+    create(@Body() createTipDto: CreateTipDto, @Req() req: any) {
+        // Extraemos el ID del usuario logueado desde el token JWT
+        const userId = req.user.userId; 
+        return this.tipsService.create(createTipDto, userId);
     }
 
     @Get()
     @ApiOperation({ summary: 'Listar propinas con filtros, paginación y totales' })
     findAll(@Query() filters: FilterTipDto) {
-        // @Query() toma los parámetros de la URL (ej: ?waiterId=1&page=2)
         return this.tipsService.findAllWithFilters(filters);
     }
 
@@ -30,5 +30,11 @@ export class TipsController {
     @ApiOperation({ summary: 'Obtener totales generales (sin filtros)' })
     getResumen() {
         return this.tipsService.getResumen();
+    }
+
+    @Get(':id/details')
+    @ApiOperation({ summary: 'Obtener detalle de propina e historial de cambios' })
+    getDetails(@Param('id') id: string) {
+        return this.tipsService.getTipDetails(+id);
     }
 }

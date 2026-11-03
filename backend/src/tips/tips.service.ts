@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Tip, PaymentType } from './tip.entity';
+import { TipHistory, ActionType } from './tip-history.entity';
 import { CreateTipDto } from './create-tip.dto';
 import { FilterTipDto } from './filter-tip.dto';
 import { User } from '../users/user.entity';
@@ -13,35 +14,46 @@ export class TipsService {
         private tipRepository: Repository<Tip>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        @InjectRepository(TipHistory)
+        private historyRepository: Repository<TipHistory>,
     ) { }
 
-    async create(createTipDto: CreateTipDto) {
+    async create(createTipDto: CreateTipDto, userId: number) {
         const { waiterId, ...tipData } = createTipDto;
+
         const waiter = await this.userRepository.findOne({ where: { id: waiterId } });
         if (!waiter) throw new NotFoundException('Mesero no encontrado');
 
+        // 1. Guardamos la propina
         const newTip = this.tipRepository.create({ ...tipData, waiter });
-        return await this.tipRepository.save(newTip);
+        const savedTip = await this.tipRepository.save(newTip);
+
+        // 2. Creamos el registro en el historial (Inicio de registro)
+        const history = this.historyRepository.create({
+            tip: savedTip,
+            action: ActionType.CREACION,
+            newData: {
+                tableNumber: savedTip.tableNumber,
+                amount: Number(savedTip.amount),
+                paymentType: savedTip.paymentType,
+                waiterName: waiter.name
+            },
+            modifiedBy: { id: userId } as User // Guardamos quién lo hizo
+        });
+        await this.historyRepository.save(history);
+
+        return savedTip;
     }
 
-    // --- NUEVO MÉTODO CON FILTROS Y PAGINACIÓN ---
     async findAllWithFilters(filters: FilterTipDto) {
         const { waiterId, paymentType, startDate, endDate, page = 1, limit = 10 } = filters;
 
-        // 1. Iniciamos el QueryBuilder
         const query = this.tipRepository.createQueryBuilder('tip')
-            .leftJoinAndSelect('tip.waiter', 'waiter'); // Traemos los datos del mesero
+            .leftJoinAndSelect('tip.waiter', 'waiter');
 
-        // 2. Aplicamos filtros dinámicamente
-        if (waiterId) {
-            query.andWhere('waiter.id = :waiterId', { waiterId });
-        }
+        if (waiterId) query.andWhere('waiter.id = :waiterId', { waiterId });
+        if (paymentType) query.andWhere('tip.paymentType = :paymentType', { paymentType });
 
-        if (paymentType) {
-            query.andWhere('tip.paymentType = :paymentType', { paymentType });
-        }
-
-        // 3. Filtro de fechas (Por defecto, si no envían nada, buscamos el mes actual)
         if (startDate && endDate) {
             query.andWhere('tip.createdAt BETWEEN :startDate AND :endDate', {
                 startDate: `${startDate} 00:00:00`,
@@ -53,35 +65,29 @@ export class TipsService {
             query.andWhere('tip.createdAt <= :endDate', { endDate: `${endDate} 23:59:59` });
         }
 
-        // 4. Clonamos la query para calcular los totales ANTES de aplicar paginación
         const summaryQuery = query.clone();
 
-        // Ejecutamos la sumatoria
         const summary = await summaryQuery
             .select('SUM(tip.amount)', 'total')
             .addSelect(`SUM(CASE WHEN tip.paymentType = ${PaymentType.EFECTIVO} THEN tip.amount ELSE 0 END)`, 'totalEfectivo')
             .addSelect(`SUM(CASE WHEN tip.paymentType = ${PaymentType.TARJETA} THEN tip.amount ELSE 0 END)`, 'totalTarjeta')
             .getRawOne();
 
-        // 5. Aplicamos paginación a la consulta principal
         query.orderBy('tip.createdAt', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 
-        // 6. Ejecutamos la consulta de datos
         const [data, totalRecords] = await query.getManyAndCount();
 
-        // 7. Devolvemos todo estructurado
         return {
-            data, // Las propinas de esta página
+            data,
             meta: {
-                totalRecords, // Cuántos registros hay en total con esos filtros
+                totalRecords,
                 currentPage: page,
                 totalPages: Math.ceil(totalRecords / limit),
                 limit,
             },
             summary: {
-                // Convertimos a número porque SUM devuelve string en algunas BD
                 total: Number(summary.total) || 0,
                 totalEfectivo: Number(summary.totalEfectivo) || 0,
                 totalTarjeta: Number(summary.totalTarjeta) || 0,
@@ -89,7 +95,31 @@ export class TipsService {
         };
     }
 
-    // Mantenemos el resumen simple por si acaso
+    // NUEVO MÉTODO: Obtener detalle e historial
+    async getTipDetails(id: number) {
+        const tip = await this.tipRepository.findOne({
+            where: { id },
+            relations: {
+                waiter: true // <-- Objeto en lugar de arreglo
+            }
+        });
+
+        if (!tip) throw new NotFoundException('Propina no encontrada');
+
+        const history = await this.historyRepository.find({
+            where: { tip: { id } },
+            relations: {
+                modifiedBy: true // <-- Objeto en lugar de arreglo
+            },
+            order: { createdAt: 'DESC' }
+        });
+
+        return {
+            tip,
+            history
+        };
+    }
+
     async getResumen() {
         const tips = await this.tipRepository.find();
         let total = 0, totalEfectivo = 0, totalTarjeta = 0;
