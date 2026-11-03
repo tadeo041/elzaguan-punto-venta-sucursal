@@ -1,1 +1,287 @@
-<p>panel-general works!</p>
+<div class="flex flex-col gap-6 w-full">
+
+    <div class="bg-bg-white rounded-2xl border border-border-general p-5">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-header-bg-icon text-header-icon rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-heading tracking-tight">Panel general de las propinas</h1>
+                    <p class="text-body mt-1 text-base">Administra fácilmente las propinas con control claro y transparente.</p>
+                </div>
+            </div>
+            <button (click)="abrirModalRegistro()" class="px-4 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-semibold rounded-lg transition-colors cursor-pointer">
+                Registrar propina
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end mb-4">
+            <div class="flex flex-col gap-1.5 md:col-span-1">
+                <label class="text-sm font-medium text-text-body">Mesero</label>
+                <select [(ngModel)]="filtros.waiterId" class="w-full px-3 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text focus:outline-none focus:border-input-focus-border">
+                    <option value="">Todos los meseros</option>
+                    @for (mesero of meseros; track mesero.id) {
+                        <option [value]="mesero.id">{{ mesero.name }}</option>
+                    }
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5 md:col-span-1">
+                <label class="text-sm font-medium text-text-body">Tipo de propina</label>
+                <select [(ngModel)]="filtros.paymentType" class="w-full px-3 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text focus:outline-none focus:border-input-focus-border">
+                    <option value="">Todos</option>
+                    <option value="1">Efectivo</option>
+                    <option value="2">Tarjeta</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-1.5 md:col-span-1">
+                <label class="text-sm font-medium text-text-body">Fecha inicio</label>
+                <input type="date" [(ngModel)]="filtros.startDate" class="w-full px-3 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text focus:outline-none focus:border-input-focus-border">
+            </div>
+            <div class="flex flex-col gap-1.5 md:col-span-1">
+                <label class="text-sm font-medium text-text-body">Fecha fin</label>
+                <input type="date" [(ngModel)]="filtros.endDate" class="w-full px-3 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text focus:outline-none focus:border-input-focus-border">
+            </div>
+            <div class="flex gap-2 md:col-span-1">
+                <button (click)="aplicarFiltros()" class="flex-1 px-4 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-medium rounded-lg transition-colors cursor-pointer">Buscar</button>
+                <button (click)="limpiarFiltros()" class="flex-1 px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">Limpiar</button>
+            </div>
+        </div>
+
+        <!-- Texto de filtros activos -->
+        @if (textoFiltrosActivos !== '') {
+            <div class="px-1 text-sm font-medium text-slate-500">
+                Filtros aplicados: <span class="font-normal">{{ textoFiltrosActivos }}</span>
+            </div>
+        }
+
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-tarjeta-bg p-5 rounded-2xl border border-border-general">
+            <div class="flex items-center gap-2 mb-2 text-tarjeta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="font-semibold">Total de propina</p>
+            </div>
+            @if (estadoVista === 'skeleton') {
+                <div class="h-10 bg-skeleton-bg rounded animate-pulse w-2/3"></div>
+            } @else if (estadoVista === 'empty') {
+                <h2 class="text-4xl font-bold text-tarjeta-valor">--</h2>
+            } @else {
+                <h2 class="text-4xl font-bold text-tarjeta-valor">${{ resumen.total | number:'1.2-2' }}</h2>
+            }
+        </div>
+
+        <div class="bg-tarjeta-bg p-5 rounded-2xl border border-border-general">
+            <div class="flex items-center gap-2 mb-2 text-tarjeta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                </svg>
+                <p class="font-semibold">Total de efectivo</p>
+            </div>
+            @if (estadoVista === 'skeleton') {
+                <div class="h-10 bg-skeleton-bg rounded animate-pulse w-2/3"></div>
+            } @else if (estadoVista === 'empty') {
+                <h2 class="text-4xl font-bold text-tarjeta-valor">--</h2>
+            } @else {
+                <h2 class="text-4xl font-bold text-tarjeta-valor">${{ resumen.totalEfectivo | number:'1.2-2' }}</h2>
+            }
+        </div>
+
+        <div class="bg-tarjeta-bg p-5 rounded-2xl border border-border-general">
+            <div class="flex items-center gap-2 mb-2 text-tarjeta-label">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                </svg>
+                <p class="font-semibold">Total de tarjeta</p>
+            </div>
+            @if (estadoVista === 'skeleton') {
+                <div class="h-10 bg-skeleton-bg rounded animate-pulse w-2/3"></div>
+            } @else if (estadoVista === 'empty') {
+                <h2 class="text-4xl font-bold text-tarjeta-valor">--</h2>
+            } @else {
+                <h2 class="text-4xl font-bold text-tarjeta-valor">${{ resumen.totalTarjeta | number:'1.2-2' }}</h2>
+            }
+        </div>
+    </div>
+
+    <div class="bg-bg-white border border-border-general w-full rounded-2xl p-2.5 mt-2">
+        <div class="bg-bg-white rounded-xl border border-table-border overflow-hidden w-full flex flex-col h-auto">            
+            @if (estadoVista === 'skeleton') {
+                <div class="flex flex-col h-full w-full">
+                    <div class="shrink-0">
+                        <table class="custom-table w-full table-fixed">
+                            <thead class="bg-gray-50 border-b border-neutral-200">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[100px]">N° MESA</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[200px]">MESERO</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">TIPO PAGO</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[150px]">REGISTRO FECHA</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">PROPINA</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[150px]">ACCIONES</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="overflow-hidden flex-1">
+                        <table class="custom-table w-full table-fixed">
+                            <tbody class="divide-y divide-neutral-200">
+                                @for (item of [1,2,3,4,5,6,7,8,9,10]; track item) {
+                                    <tr [class.bg-gray-50]="item % 2 === 0">
+                                        <td class="px-6 py-4 w-[100px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-12"></div></td>
+                                        <td class="px-6 py-4 w-[200px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-32"></div></td>
+                                        <td class="px-6 py-4 text-center w-[120px]"><div class="h-6 bg-gray-200 rounded-md animate-pulse w-20 mx-auto"></div></td>
+                                        <td class="px-6 py-4 w-[150px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-24"></div></td>
+                                        <td class="px-6 py-4 text-right w-[120px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-16 ml-auto"></div></td>
+                                        <td class="px-6 py-4 w-[150px]">
+                                            <div class="flex items-center justify-center gap-2">
+                                                <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                                                <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer shrink-0 px-6 py-4 border-t border-neutral-200 bg-gray-50 flex items-center justify-between">
+                        <div class="h-4 bg-gray-200 rounded-md animate-pulse w-48"></div>
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-2">
+                                <div class="h-4 bg-gray-200 rounded-md animate-pulse w-24"></div>
+                                <div class="h-8 w-16 bg-gray-200 rounded-md animate-pulse"></div>
+                            </div>
+                            <div class="navegacion-paginacion flex items-center gap-3">
+                                <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                                <div class="h-4 bg-gray-200 rounded-md animate-pulse w-12"></div>
+                                <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (estadoVista === 'empty') {
+                <div class="flex-1 flex flex-col items-center justify-center p-12 text-center bg-white w-full">
+                    <div class="w-16 h-16 bg-empty-bg rounded-full flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8 text-empty-icon">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0l-3-3m3 3l3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-semibold text-empty-title mb-2">No hay propinas registradas</span>
+                    <span class="text-base font-normal text-empty-text max-w-md mx-auto mb-6">
+                        No se encontraron resultados para los filtros seleccionados. Intenta cambiar las fechas, tipo de pago o el mesero.
+                    </span>
+                    <button (click)="limpiarFiltros()" class="px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">
+                        Limpiar Filtros
+                    </button>
+                </div>
+            }
+
+            @if (estadoVista === 'data') {
+                <div class="flex flex-col h-auto w-full">
+                    <div class="shrink-0">
+                        <table class="custom-table w-full table-fixed">
+                            <thead class="bg-table-header-bg border-b border-table-border">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-table-header-text uppercase tracking-wider w-[100px]">N° MESA</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-table-header-text uppercase tracking-wider w-[200px]">MESERO</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-table-header-text uppercase tracking-wider w-[120px]">TIPO PAGO</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-table-header-text uppercase tracking-wider w-[150px]">REGISTRO FECHA</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-table-header-text uppercase tracking-wider w-[120px]">PROPINA</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-table-header-text uppercase tracking-wider w-[150px]">ACCIONES</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                    <div class="overflow-auto flex-1">
+                        <table class="custom-table w-full table-fixed">
+                            <tbody class="divide-y divide-neutral-200">
+                                @for (item of propinas; track item.id; let odd = $odd) {
+                                    <tr [class.bg-gray-50]="odd" class="hover:bg-table-row-hover transition-colors cursor-pointer">
+                                        <td class="px-6 py-4 text-sm font-medium text-table-text-impor w-[100px]">{{ item.tableNumber }}</td>
+                                        <td class="px-6 py-4 text-sm text-table-text w-[200px] truncate" [title]="item.waiter.name">{{ item.waiter.name }}</td>
+                                        <td class="px-6 py-4 text-center w-[120px]">
+                                            @if (item.paymentType === 1) {
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-chip-verde-bg text-chip-verde-text">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                                                    </svg>
+                                                    Efectivo
+                                                </span>
+                                            }
+                                            @if (item.paymentType === 2) {
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-chip-azul-bg text-chip-azul-text">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                                                    </svg>
+                                                    Tarjeta
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="px-6 py-4 text-sm w-[150px] text-table-text">{{ item.createdAt | date:'dd MMM yyyy' }}</td>
+                                        <td class="px-6 py-4 text-sm font-semibold table-text-impor text-right w-[120px]">${{ item.amount }}</td>
+                                        <td class="px-6 py-4 w-[150px]">
+                                            <div class="flex items-center justify-end gap-2 text-table-text "> 
+                                                <button class="p-2 hover:text-table-boton-text-hove hover:bg-table-boton-bg-hover rounded-lg transition-colors" title="Ver detalle">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    </svg>
+                                                </button>
+                                                <button class="p-2 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-footer shrink-0 px-6 py-4 border-t border-table-border bg-table-footer-bg flex items-center justify-between mt-auto">
+                        <span class="text-sm text-gray-600">
+                            Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}–{{ Math.min(currentPage * pageSize, totalRecords) }} de {{ totalRecords }} resultados
+                        </span>
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">Filas por página:</span>
+                                <select (change)="cambiarTamanoPagina($event)" [value]="pageSize" class="px-1.5 py-1 text-sm border border-neutral-200 rounded-md bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none cursor-pointer">
+                                    <option value="7">7</option>
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </div>
+                            <div class="navegacion-paginacion flex items-center gap-3">
+                                <button (click)="cambiarPaginaAnterior()" [disabled]="currentPage === 1" class="p-1 bg-white border border-neutral-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Página anterior">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                <span class="indicador-paginacion text-sm font-medium text-gray-700">{{ currentPage }} / {{ totalPages }}</span>
+                                <button (click)="cambiarPaginaSiguiente()" [disabled]="currentPage === totalPages" class="p-1 bg-white border border-neutral-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed" title="Página siguiente">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+@if (modalAbierto) {
+    <app-modal-registrar 
+        [meseros]="meseros" 
+        (cerrar)="cerrarModal()" 
+        (propinaGuardada)="onPropinaGuardada()">
+    </app-modal-registrar>
+}

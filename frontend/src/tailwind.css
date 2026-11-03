@@ -135,4 +135,10 @@
         
         --color-chip-rojo-bg: #fef2f2;
         --color-chip-rojo-text: #991b1b;
+    
+    /* Modal*/
+        --color-modal-bg-encabezado-footer: #F9FAFB;
+        --color-modal-bg-body: #ffffff;
+        --color-modal-encabezado: #111827; 
+        --color-modal-parrafo: #6b7280;
 }

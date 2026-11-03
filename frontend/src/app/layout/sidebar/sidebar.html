@@ -46,26 +46,51 @@
                 </button>
 
                 <div *ngIf="isCollapsed && menuColapsadoAbierto !== 'propina'" 
-                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[9999] shadow-lg hidden group-hover:block">
+                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-9999 shadow-lg hidden group-hover:block">
                     Propina
                     <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-black"></div>
                 </div>
 
+                <!-- Submenú Normal con routerLink -->
                 <div *ngIf="menuAbierto === 'propina' && !isCollapsed" class="flex gap-2 pl-4.5 pr-1 py-2">
                     <div class=" left-[1.1rem] top-0 bottom-4 w-px bg-border-general"></div>
                     <div class="flex flex-col gap-1 w-full">
-                        <a href="#" class="px-3 py-2 text-sm text-sidebar-active-text bg-sidebar-active-bg rounded-lg font-semibold">Panel general</a>
-                        <a href="#" class="px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text transition-colors">Distribución</a>
-                        <a href="#" class="px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text transition-colors">Reportes</a>
+                        <a routerLink="/propina/panel" 
+                           routerLinkActive="text-sidebar-active-text bg-sidebar-active-bg font-semibold"
+                           class="px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text transition-colors cursor-pointer">
+                            Panel general
+                        </a>
+                        <a routerLink="/propina/distribucion" 
+                           routerLinkActive="text-sidebar-active-text bg-sidebar-active-bg font-semibold"
+                           class="px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text transition-colors cursor-pointer">
+                            Distribución
+                        </a>
+                        <a routerLink="/propina/reportes" 
+                           routerLinkActive="text-sidebar-active-text bg-sidebar-active-bg font-semibold"
+                           class="px-3 py-2 text-sm rounded-lg hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text transition-colors cursor-pointer">
+                            Reportes
+                        </a>
                     </div>
                 </div>
 
-                <!-- Bandeja flotante (Fixed, alineada al tope y más cerca del sidebar) -->
+                <!-- Bandeja flotante con routerLink -->
                 <div *ngIf="isCollapsed && menuColapsadoAbierto === 'propina'" 
-                     class="fixed left-[5.2rem] -mt-11 w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-[9999] flex flex-col gap-1">
-                    <a href="#" class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Panel general</a>
-                    <a href="#" class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Distribución</a>
-                    <a href="#" class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Reportes</a>
+                     class="fixed left-[5.2rem] -mt-11 w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-9999 flex flex-col gap-1">
+                    <a routerLink="/propina/panel" 
+                       (click)="menuColapsadoAbierto = null"
+                       class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                       Panel general
+                    </a>
+                    <a routerLink="/propina/distribucion" 
+                       (click)="menuColapsadoAbierto = null"
+                       class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                       Distribución
+                    </a>
+                    <a routerLink="/propina/reportes" 
+                       (click)="menuColapsadoAbierto = null"
+                       class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
+                       Reportes
+                    </a>
                 </div>
             </div>
 
@@ -87,14 +112,14 @@
                 </button>
 
                 <div *ngIf="isCollapsed && menuColapsadoAbierto !== 'inventario'" 
-                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[9999] shadow-lg hidden group-hover:block">
+                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-9999 shadow-lg hidden group-hover:block">
                     Inventario
                     <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-black"></div>
                 </div>
 
-                <!-- Bandeja flotante -->
+                <!-- Bandeja flotante (Ejemplo para Inventario) -->
                 <div *ngIf="isCollapsed && menuColapsadoAbierto === 'inventario'" 
-                     class="fixed left-[5.2rem] -mt-11 w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-[9999] flex flex-col gap-1">
+                     class="fixed left-[5.2rem] -mt-11 w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-2 z-9999 flex flex-col gap-1">
                     <a href="#" class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Productos</a>
                     <a href="#" class="px-4 py-2 text-sm text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">Categorías</a>
                 </div>
@@ -109,7 +134,7 @@
                     <span *ngIf="!isCollapsed">Biblioteca digital</span>
                 </a>
                 <div *ngIf="isCollapsed" 
-                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[9999] shadow-lg hidden group-hover:block">
+                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-9999 shadow-lg hidden group-hover:block">
                     Biblioteca digital
                     <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-black"></div>
                 </div>
@@ -128,7 +153,7 @@
                     <span *ngIf="!isCollapsed">Usuarios</span>
                 </a>
                 <div *ngIf="isCollapsed" 
-                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[9999] shadow-lg hidden group-hover:block">
+                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-9999 shadow-lg hidden group-hover:block">
                     Usuarios
                     <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-black"></div>
                 </div>
@@ -143,7 +168,7 @@
                     <span *ngIf="!isCollapsed">Soporte</span>
                 </a>
                 <div *ngIf="isCollapsed" 
-                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[9999] shadow-lg hidden group-hover:block">
+                     class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-9999 shadow-lg hidden group-hover:block">
                     Soporte
                     <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-black"></div>
                 </div>

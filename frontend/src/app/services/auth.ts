@@ -6,15 +6,14 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  // URL de tu backend NestJS
-  private apiUrl = 'http://localhost:3000/api/auth'; 
+  // Usamos la ruta relativa para que el proxy haga el trabajo
+  private apiUrl = '/api/auth'; 
 
   constructor(private http: HttpClient) { }
 
   login(credentials: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       tap((response: any) => {
-        // Si el login es exitoso, guardamos el token y los datos del usuario
         if (response.access_token) {
           localStorage.setItem('token', response.access_token);
           localStorage.setItem('user', JSON.stringify(response.user));

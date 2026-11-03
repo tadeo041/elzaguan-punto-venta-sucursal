@@ -13,7 +13,7 @@ export const routes: Routes = [
                 { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
                 
                 // Rutas de Propina
-                { path: 'propina/panel', loadComponent: () => import('./pages/propina/panel-general/panel-general').then(m => m.PanelGeneral) },
+                { path: 'propina/panel', loadComponent: () => import('./pages/propina/panel-general/panel-general').then(m => m.PanelGeneralComponent) },
                 { path: 'propina/distribucion', loadComponent: () => import('./pages/propina/distribucion/distribucion').then(m => m.Distribucion) },
                 { path: 'propina/reportes', loadComponent: () => import('./pages/propina/reportes/reportes').then(m => m.Reportes) },
                 

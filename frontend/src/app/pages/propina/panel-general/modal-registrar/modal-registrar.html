@@ -1,0 +1,188 @@
+<!-- Fondo oscuro semitransparente -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+
+    <!-- Contenedor del Modal -->
+    <div
+        class="bg-modal-bg-body w-full max-w-[480px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+
+        <!-- Encabezado (Fijo) -->
+        <div
+            class="flex justify-between items-start p-6 pb-4 bg-modal-bg-encabezado-footer border-b border-border-general shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-modal-encabezado">Registrar propina</h2>
+                <p class="text-sm text-modal-parrafo mt-1">Ingresa los detalles de la propina recibida</p>
+            </div>
+            <button (click)="cerrarModal()" class="text-muted hover:text-heading transition-colors cursor-pointer mt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Cuerpo del Modal (Con scroll) -->
+        <div class="p-6 flex flex-col gap-5 overflow-y-auto shrink">
+
+            <!-- Tooltip de Error (Arriba) -->
+            @if (errorMessage) {
+            <div
+                class="text-input-error-text text-sm font-semibold bg-input-error-bg p-3 rounded-lg border border-input-error-border flex items-center gap-2 animate-fade-in">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="size-5 shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {{ errorMessage }}
+            </div>
+            }
+
+            <!-- Seleccione el método de propina -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-label-text">
+                    Seleccione el método de propina<span class="text-label-required">*</span>
+                </label>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Tarjeta Efectivo -->
+                    <label class="cursor-pointer h-full">
+                        <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="1" class="peer sr-only">
+
+                        <!-- Contenedor principal -->
+                        <div class="h-full flex items-start gap-3 p-3 border border-input-border rounded-xl bg-input-bg 
+                    peer-checked:border-blue-600 peer-checked:bg-blue-50 
+                    peer-checked:ring-1 peer-checked:ring-blue-600 transition-all">
+
+                            <!-- Input Nativo Estilizado -->
+                            <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="1" class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 border-muted rounded-full 
+                          checked:border-blue-600 checked:bg-blue-600 checked:shadow-[inset_0_0_0_3px_white] 
+                          transition-all cursor-pointer">
+
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-heading">Efectivo</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Propina dejada en la charola en
+                                    efectivo</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Tarjeta Tarjeta -->
+                    <label class="cursor-pointer h-full">
+                        <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="2" class="peer sr-only">
+
+                        <div class="h-full flex items-start gap-3 p-3 border border-input-border rounded-xl bg-input-bg 
+                    peer-checked:border-blue-600 peer-checked:bg-blue-50 
+                    peer-checked:ring-1 peer-checked:ring-blue-600 transition-all">
+
+                            <!-- Input Nativo Estilizado -->
+                            <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="2" class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 border-muted rounded-full 
+                          checked:border-blue-600 checked:bg-blue-600 checked:shadow-[inset_0_0_0_3px_white] 
+                          transition-all cursor-pointer">
+
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-heading">Tarjeta</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Propina pagado con tarjeta</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Trabajador recoge propina -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-label-text">Selecciona quién recibió la propina<span
+                        class="text-label-required">*</span></label>
+                <div class="relative">
+                    <!-- Icono de usuario -->
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                    </div>
+
+                    <select [(ngModel)]="nuevaPropina.waiterId" (change)="errorMessage = ''"
+                        class="w-full pl-10 pr-10 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text appearance-none focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all cursor-pointer">
+                        <option value="" disabled selected>Selecciona un trabajador</option>
+                        @for (user of meseros; track user.id) {
+                        <option [value]="user.id">
+                            {{ user.name }} ({{ user.role | titlecase }})
+                        </option>
+                        }
+                    </select>
+
+                    <!-- Flecha del select -->
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                            stroke="currentColor" class="size-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- N° mesa y Propina -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- N° mesa -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-label-text">N° mesa<span
+                            class="text-label-required">*</span></label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                        </div>
+                        <input type="number" [(ngModel)]="nuevaPropina.tableNumber" (input)="errorMessage = ''"
+                            placeholder="0" min="0"
+                            class="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text placeholder-input-placeholder focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all">
+                    </div>
+                </div>
+
+                <!-- Propina (Monto) -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-label-text">Propina<span
+                            class="text-label-required">*</span></label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <input type="number" [(ngModel)]="nuevaPropina.amount" (input)="errorMessage = ''"
+                            placeholder="0.00" min="0"
+                            class="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text placeholder-input-placeholder focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer / Botones (Fijo) -->
+        <div
+            class="p-5 flex justify-end gap-3 bg-modal-bg-encabezado-footer border-t border-border-general shrink-0 rounded-b-2xl">
+            <button (click)="cerrarModal()" [disabled]="isLoading"
+                class="px-6 py-2.5 bg-btn-secondary border border-btn-secondary-border text-btn-secondary-text font-medium rounded-lg hover:bg-btn-secondary-hover transition-colors cursor-pointer">
+                Cancelar
+            </button>
+            <button (click)="guardar()" [disabled]="isLoading"
+                class="px-6 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center min-w-[100px]">
+                @if (isLoading) {
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
+                </svg>
+                } @else {
+                Registrar
+                }
+            </button>
+        </div>
+    </div>
+</div>
