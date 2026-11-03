@@ -2,7 +2,7 @@
 
 @theme {
 
-    /* COLORES BASE */
+    /* Color base */
         --color-bg-white: #ffffff;
         --color-primary: #D5720D;       
         --color-primary-light: #B45309;
@@ -10,20 +10,20 @@
         --color-bg-body: #FEFAEC; 
         --color-border-general: #E2E8F0;
     
-    /* JERARQUÍA DE TEXTOS (Tipografía) */
+    /*  Jerarquia de textos (Tipografía) */
         --color-heading: #111827;       
         --color-body: #374151;          
         --color-muted: #6b7280;         
         --color-label: #4b5563;         
 
-    /* BOTONES PRIMARIOS */
+    /* Boton primario */
         --color-btn-primary: #D5720D;       
         --color-btn-primary-hover: #B45309; 
         --color-btn-primary-active: #92400E; 
         --color-btn-primary-disabled: #E5E7EB; 
         --color-btn-primary-text: #ffffff;  
 
-    /* BOTONES SECUNDARIOS */
+    /* Boton secundario */
         --color-btn-secondary: #ffffff;
         --color-btn-secondary-border: #D1D5DB;
         --color-btn-secondary-text: #374151;
@@ -32,13 +32,13 @@
         --color-btn-secondary-disabled: #F9FAFB;
         --color-btn-secondary-text-disabled: #9CA3AF;
 
-    /* BOTONES TERCIARIOS */
+    /* Boton terciario */
         --color-btn-tertiary: transparent;
         --color-btn-tertiary-text: #D5720D; 
         --color-btn-tertiary-hover: #FEF3C7; 
         --color-btn-tertiary-active: #FDE68A;
 
-    /* BOTONES DE ICONO */
+    /* Boton de icono */
         --color-btn-icon: transparent;
         --color-btn-icon-text: #6b7280;
         --color-btn-icon-hover: #F3F4F6;
@@ -46,13 +46,19 @@
         --color-btn-icon-disabled: transparent;
         --color-btn-icon-text-disabled: #D1D5DB;
 
-    /* INPUTS Y FORMULARIOS */
+    /* Boton de filtro "Limpiar filtro" */
+        --color-btn-lim-filtro-bg: #ffffff;
+        --color-btn-lim-filtro-text: #4a5565 ; 
+        --color-btn-lim-filtro-hover: #f9fafb ; 
+        --color-btn-lim-filtro-active: #d1d5dc ;    
+
+    /* Inputs y formularios */
         --color-input-bg: #ffffff;
         --color-input-border: #D1D5DB;
         --color-input-text: #111827;
         --color-input-placeholder: #9CA3AF;
         --color-input-focus-ring: #BFDBFE; 
-    
+
     /* Estados del Input */
         --color-input-focus-border: #2563EB; 
         --color-input-focus-ring: rgba(213, 114, 13, 0.2); 
@@ -66,24 +72,26 @@
         --color-label-text: #374151;
         --color-label-required: #EF4444; 
 
-    /* TOOLTIPS */
+    /* Toltips */
         --color-tooltip-bg: #1F2937; 
         --color-tooltip-text: #F9FAFB; 
 
-    /* ESQUELETOS DE CARGA */
+    /* Esqueleto de carga */
         --color-skeleton-bg: #E5E7EB; 
         --color-skeleton-shimmer: #F3F4F6; 
 
-    /* EMPTY STATES */
+    /* Estado vacio  */
         --color-empty-icon: #9CA3AF;
         --color-empty-title: #374151;
         --color-empty-text: #6B7280;
+        --color-empty-bg: #FEFAEC;
+        --color-empty-icon: #D5720D;         
 
-    /* ICONOS */
+    /* Iconos */
         --color-icon: #374151;          
         --color-icon-inverse: #ffffff;  
 
-    /* TABLAS */
+    /* Tablas */
         --color-table-header-bg: #f9fafb;  
         --color-table-header-text: #4a5565;
         --color-table-text: #364153;
@@ -96,7 +104,7 @@
         --color-table-boton-text-hove: #193cb8;
         --color-table-footer-bg: #f9fafb ;         
 
-    /* SIDEBAR */
+    /* Sidebar */
         --color-sidebar-bg: #ffffff;         
         --color-sidebar-text: #5C5E64;       
         --color-sidebar-hover-bg: #FEFAEC;  
@@ -104,28 +112,27 @@
         --color-sidebar-active-bg: #FEFAEC;  
         --color-sidebar-active-text: #D97706; 
 
-    /* ENCABEZADO PRINCIPAL*/
+    /* Encabezado principal*/
         --color-header-bg: #ffffff;
         --color-header-bg-icon: #FEFAEC;
         --color-header-icon: #D97706;    
     
-    /* TARJETA DASHBOARD */
-    --color-tarjeta-bg: #ffffff;
-    --color-tarjeta-valor: #0F172A;
-    --color-tarjeta-label: #334155;
+    /* Tarjeta dashoard */
+        --color-tarjeta-bg: #ffffff;
+        --color-tarjeta-valor: #0F172A;
+        --color-tarjeta-label: #334155;
 
 
-    /* CHIPS DE ESTADO */
-    --color-chip-verde-bg: #f0fdf4;
-    --color-chip-verde-text: #166534;
-    
-    --color-chip-azul-bg: #eff6ff;
-    --color-chip-azul-text: #1e40af;
-    
-    --color-chip-amarillo-bg: #fefce8;
-    --color-chip-amarillo-text: #854d0e;
-    
-    --color-chip-rojo-bg: #fef2f2;
-    --color-chip-rojo-text: #991b1b;
-
+    /* Chips de estado */
+        --color-chip-verde-bg: #f0fdf4;
+        --color-chip-verde-text: #166534;
+        
+        --color-chip-azul-bg: #eff6ff;
+        --color-chip-azul-text: #1e40af;
+        
+        --color-chip-amarillo-bg: #fefce8;
+        --color-chip-amarillo-text: #854d0e;
+        
+        --color-chip-rojo-bg: #fef2f2;
+        --color-chip-rojo-text: #991b1b;
 }
