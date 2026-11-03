@@ -9,7 +9,7 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private userRepository: Repository<User>,
-    ) {}
+    ) { }
 
     // 1. Crear un usuario (encriptando la contraseña)
     async create(createUserDto: any): Promise<User> {
@@ -18,7 +18,7 @@ export class UsersService {
         // Verificar si el usuario ya existe
         const existingUser = await this.userRepository.findOne({ where: { username } });
         if (existingUser) {
-        throw new ConflictException('El nombre de usuario ya está en uso');
+            throw new ConflictException('El nombre de usuario ya está en uso');
         }
 
         // Encriptar la contraseña
@@ -27,10 +27,10 @@ export class UsersService {
 
         // Crear el registro
         const newUser = this.userRepository.create({
-        name,
-        username,
-        passwordHash,
-        role: role || UserRole.CAJERO,
+            name,
+            username,
+            passwordHash,
+            role: role || UserRole.CAJERO,
         });
 
         return await this.userRepository.save(newUser);
@@ -39,7 +39,7 @@ export class UsersService {
     // 2. Listar todos los usuarios
     async findAll(): Promise<User[]> {
         return await this.userRepository.find({
-            select: { 
+            select: {
                 id: true,
                 name: true,
                 username: true,
@@ -67,19 +67,19 @@ export class UsersService {
 
         // Si el usuario está enviando una nueva contraseña, la encriptamos
         if (updateUserDto.password) {
-        const salt = await bcrypt.genSalt(10);
-        updateUserDto.passwordHash = await bcrypt.hash(updateUserDto.password, salt);
-        delete updateUserDto.password; // Eliminamos la contraseña en texto plano
+            const salt = await bcrypt.genSalt(10);
+            updateUserDto.passwordHash = await bcrypt.hash(updateUserDto.password, salt);
+            delete updateUserDto.password; // Eliminamos la contraseña en texto plano
         }
 
         // Verificar si el nuevo username ya está ocupado por otro usuario
         if (updateUserDto.username && updateUserDto.username !== user.username) {
-        const existingUser = await this.userRepository.findOne({ 
-            where: { username: updateUserDto.username } 
-        });
-        if (existingUser) {
-            throw new ConflictException('El nombre de usuario ya está en uso');
-        }
+            const existingUser = await this.userRepository.findOne({
+                where: { username: updateUserDto.username }
+            });
+            if (existingUser) {
+                throw new ConflictException('El nombre de usuario ya está en uso');
+            }
         }
 
         const updatedUser = Object.assign(user, updateUserDto);
@@ -96,31 +96,64 @@ export class UsersService {
     // 7. Buscar usuarios por rol (gerente, cajero, mesero, cocinero)
     async findByRole(role: UserRole): Promise<User[]> {
         return await this.userRepository.find({
-        where: { role },
-        select: { id: true, name: true, username: true, role: true, isActive: true }
+            where: { role },
+            select: { id: true, name: true, username: true, role: true, isActive: true }
         });
     }
-    
+
     // 8. Validar credenciales para el Login
     async validateUser(username: string, pass: string): Promise<any> {
         // Buscamos al usuario incluyendo el hash de la contraseña
-        const user = await this.userRepository.findOne({ 
-        where: { username },
-        select: { id: true, name: true, username: true, role: true, isActive: true, passwordHash: true } 
+        const user = await this.userRepository.findOne({
+            where: { username },
+            select: { id: true, name: true, username: true, role: true, isActive: true, passwordHash: true }
         });
 
         if (!user) return null;
         if (!user.isActive) {
-        throw new ConflictException('El usuario está desactivado. Contacte al gerente.');
+            throw new ConflictException('El usuario está desactivado. Contacte al gerente.');
         }
 
         // Comparamos la contraseña enviada con el hash guardado en la BD
         const isMatch = await bcrypt.compare(pass, user.passwordHash);
         if (isMatch) {
-        // Si es correcta, quitamos el hash por seguridad antes de devolver el usuario
-        const { passwordHash, ...result } = user;
-        return result;
+            // Si es correcta, quitamos el hash por seguridad antes de devolver el usuario
+            const { passwordHash, ...result } = user;
+            return result;
         }
         return null;
-    }    
+    }
+
+    async findWithFilters(filters: any): Promise<User[]> {
+        const { id, role, isActive } = filters;
+
+        const query = this.userRepository.createQueryBuilder('user');
+
+        if (id) {
+            query.andWhere('user.id = :id', { id });
+        }
+
+        if (role) {
+            query.andWhere('user.role = :role', { role });
+        }
+
+        if (isActive !== undefined) {
+            // Convertimos el string "true"/"false" a booleano real
+            const isActiveBoolean = isActive === 'true';
+            query.andWhere('user.isActive = :isActive', { isActive: isActiveBoolean });
+        }
+
+        // Ocultamos el hash de la contraseña en la respuesta
+        query.select([
+            'user.id',
+            'user.name',
+            'user.username',
+            'user.role',
+            'user.isActive'
+        ]);
+
+        query.orderBy('user.name', 'ASC');
+
+        return await query.getMany();
+    }
 }

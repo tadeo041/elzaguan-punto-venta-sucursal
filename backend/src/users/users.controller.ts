@@ -1,18 +1,18 @@
-import { Controller, Get, Post, Body, Param, Patch, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User, UserRole } from './user.entity';
 import { CreateUserDto } from './create-user.dto';
 import { UpdateUserDto } from './update-user.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth  } from '@nestjs/swagger';
-import { UseGuards } from '@nestjs/common';
+import { FilterUserDto } from './filter-user.dto'; // <-- Importar
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt')) 
+@UseGuards(AuthGuard('jwt'))
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService) { }
 
     @Post()
     @ApiOperation({ summary: 'Crear un nuevo usuario' })
@@ -20,17 +20,16 @@ export class UsersController {
         return this.usersService.create(createUserDto);
     }
 
+    // MODIFICAMOS EL GET PRINCIPAL PARA QUE ACEPTE FILTROS
     @Get()
-    @ApiOperation({ summary: 'Listar todos los usuarios' })
-    findAll() {
-        return this.usersService.findAll();
-    }
-
-    // OJO: Esta ruta debe ir antes de @Get(':id') para evitar conflictos
-    @Get('filter')
-    @ApiOperation({ summary: 'Filtrar usuarios por rol' })
-    findByRole(@Query('role') role: UserRole) {
-        return this.usersService.findByRole(role);
+    @ApiOperation({ summary: 'Listar usuarios con filtros (ID, Rol, Estado)' })
+    findAll(@Query() filters: FilterUserDto) {
+        // Si no hay filtros, devuelve todos
+        if (!filters.id && !filters.role && filters.isActive === undefined) {
+            return this.usersService.findAll();
+        }
+        // Si hay filtros, usa el nuevo método
+        return this.usersService.findWithFilters(filters);
     }
 
     @Get(':id')
