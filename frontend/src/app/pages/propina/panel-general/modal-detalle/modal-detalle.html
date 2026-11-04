@@ -1,0 +1,221 @@
+<!-- Fondo oscuro -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-end z-[9999] p-4">
+
+    <!-- Panel Lateral Derecho -->
+    <div class="bg-modal-bg-body w-full max-w-lg h-full rounded-2xl shadow-2xl flex flex-col overflow-hidden relative animate-slide-in-right">
+
+        <!-- Encabezado (Fijo) -->
+        <div class="flex justify-between items-center p-6 border-b border-border-general bg-modal-bg-encabezado-footer shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-modal-encabezado">Detalle de Propina</h2>
+                <p class="text-sm text-modal-parrafo mt-1">Información y historial de registro</p>
+            </div>
+            <button (click)="cerrarModal()" class="cursor-pointer bg-btn-icon text-btn-icon-text hover:text-btn-icon-hover transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Contenido scrolleable -->
+        <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+
+            @if (loading) {
+            <div class="flex justify-center items-center h-full">
+                <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            } @else if (detalle) {
+
+            <!-- 1. INFORMACIÓN ACTUAL -->
+            <div class="flex flex-col gap-4 text-sm mb-2">
+                <!-- Tipo de pago -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">Tipo de pago</span>
+                    <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold w-max" [ngClass]="detalle.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-3.5">
+                            <path *ngIf="detalle.paymentType === 1" stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                            <path *ngIf="detalle.paymentType === 2" stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+                        </svg>
+                        {{ detalle.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                    </span>
+                </div>
+
+                <!-- Mesero -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">Mesero</span>
+                    <span class="text-gray-800 font-semibold truncate" [title]="detalle.waiter.name">{{ detalle.waiter.name }}</span>
+                </div>
+
+                <!-- Fecha -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">Fecha de registro</span>
+                    <span class="text-gray-800">{{ detalle.createdAt | date:'dd \'de\' MMMM \'del\' yyyy - h:mm a' }}</span>
+                </div>
+
+                <!-- Propina -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">Propina</span>
+                    <span class="text-gray-800 font-semibold text-base">${{ detalle.amount }}</span>
+                </div>
+
+                <!-- N° Mesa -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">N° Mesa</span>
+                    <span class="text-gray-800">{{ detalle.tableNumber }}</span>
+                </div>
+            </div>
+
+            <!-- Historial de modificaciónes -->
+            <div class="mt-2">
+                <h3 class="text-sm font-bold text-gray-700 mb-4 border-t border-gray-100 pt-4">Historial de cambios</h3>
+
+                <!-- Contenedor relativo para la línea vertical -->
+                <div class="relative flex flex-col gap-6 ml-3">
+                    
+                    <!-- Línea vertical gris -->
+                    <div class="absolute left-[15px] top-4 bottom-4 w-px bg-gray-200 z-0"></div>
+
+                    @for (item of historial; track item.id) {
+                        <!-- Contenedor de cada evento -->
+                        <div class="relative flex gap-4 z-10">
+                            
+                            <!-- Ícono en la línea de tiempo -->
+                            <div class="w-8 h-8 rounded-full bg-bg-card-history border border-gray-200 flex items-center justify-center shrink-0 mt-1">
+                                @switch (item.action) {
+                                    @case ('creacion') {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                    }
+                                    @case ('cambio_mesero') {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                                    }
+                                    @case ('cambio_monto') {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    }
+                                    @case ('cambio_mesa') {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                                    }
+                                    @case ('cambio_entrega') {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
+                                    }
+                                }
+                            </div>
+
+                            <!-- Tarjeta del evento  -->
+                            <div class="bg-bg-card-history rounded-2xl border border-border-general p-4 flex-1 ">
+                                <div class="flex justify-between items-start mb-1">
+                                    <h3 class="font-bold text-gray-800 text-base">
+                                        @switch (item.action) {
+                                        @case ('creacion') { Inicio de registro }
+                                        @case ('cambio_mesero') { Cambio de mesero }
+                                        @case ('cambio_monto') { Cambio de propina }
+                                        @case ('cambio_mesa') { Cambio de n° mesa }
+                                        @case ('cambio_entrega') { Cambio entrega de propina }
+                                        }
+                                    </h3>
+                                    <span class="text-base font-bold text-gray-700">{{ item.createdAt | date:'HH:mm' }} hrs</span>
+                                </div>
+
+                                <div class="flex justify-between items-center">
+                                    <p class="text-sm text-gray-600 font-medium">
+                                        @switch (item.action) {
+                                        @case ('creacion') { Se inició el registro }
+                                        @case ('cambio_mesero') { Detalle de reasignación: }
+                                        @case ('cambio_monto') { Detalle del cambio de propina: }
+                                        @case ('cambio_mesa') { Detalle del cambio de n° mesa: }
+                                        @case ('cambio_entrega') { Detalles del cambio de entrega }
+                                        }
+                                    </p>
+                                    <p class="text-xs font-medium text-gray-600">({{ item.createdAt | date:'dd/MM/yyyy' }})</p>
+                                </div>
+
+                                @if (item.action !== 'creacion') {
+                                    <div class="flex flex-col gap-2 mt-2.5">
+                                        
+                                        <!-- Fila ANTERIOR -->
+                                        <div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center">
+                                            <span class="font-bold text-gray-400 text-sm tracking-wide">ANTERIOR</span>
+                                            
+                                            @if (item.action === 'cambio_mesero') {
+                                                <span class="text-sm font-bold text-gray-700">{{ item.previousData.waiterName }}</span>
+                                            }
+                                            @if (item.action === 'cambio_monto') {
+                                                <span class="text-sm font-bold text-gray-400">${{ item.previousData.amount }}</span>
+                                            }
+                                            @if (item.action === 'cambio_mesa') {
+                                                <span class="text-sm font-bold text-gray-700">Mesa {{ item.previousData.tableNumber }}</span>
+                                            }
+                                            @if (item.action === 'cambio_entrega') {
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold" 
+                                                      [ngClass]="item.previousData.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                                                    {{ item.previousData.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                                                </span>
+                                            }
+                                        </div>
+
+                                        <!-- Flecha -->
+                                        <div class="flex justify-center -my-1 text-gray-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+                                            </svg>
+                                        </div>
+
+                                        <!-- Fila NUEVO -->
+                                        <div class="rounded-xl p-3 flex justify-between items-center border" [ngClass]="{
+                                                'border-[#3B82F6] bg-[#EFF6FF]': item.action === 'cambio_mesero' || item.action === 'cambio_mesa',
+                                                'border-green-500 bg-green-50': item.action === 'cambio_monto' && (item.newData.amount > item.previousData.amount),
+                                                'border-yellow-500 bg-yellow-50': item.action === 'cambio_monto' && (item.newData.amount < item.previousData.amount),
+                                                'border-gray-200 bg-white': item.action === 'cambio_entrega'
+                                             }">
+                                            
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-bold text-sm tracking-wide" [ngClass]="{
+                                                        'text-[#3B82F6]': item.action === 'cambio_mesero' || item.action === 'cambio_mesa',
+                                                        'text-green-600': item.action === 'cambio_monto' && (item.newData.amount > item.previousData.amount),
+                                                        'text-yellow-600': item.action === 'cambio_monto' && (item.newData.amount < item.previousData.amount),
+                                                        'text-gray-400': item.action === 'cambio_entrega'
+                                                      }">
+                                                    NUEVO
+                                                </span>
+                                                
+                                                @if (item.action === 'cambio_monto') {
+                                                    <span class="text-xs px-2 py-0.5 rounded font-bold" [ngClass]="{
+                                                            'bg-green-200 text-green-800': item.newData.amount > item.previousData.amount,
+                                                            'bg-yellow-200 text-yellow-800': item.newData.amount < item.previousData.amount
+                                                          }">
+                                                        {{ item.newData.amount > item.previousData.amount ? '+' : '-' }} ${{ Math.abs(item.newData.amount - item.previousData.amount) }}
+                                                    </span>
+                                                }
+                                            </div>
+
+                                            @if (item.action === 'cambio_mesero') {
+                                                <span class="text-sm font-bold text-[#3B82F6]">{{ item.newData.waiterName }}</span>
+                                            }
+                                            @if (item.action === 'cambio_monto') {
+                                                <span class="text-sm font-bold" [ngClass]="item.newData.amount > item.previousData.amount ? 'text-green-600' : 'text-yellow-600'">
+                                                    ${{ item.newData.amount }}
+                                                </span>
+                                            }
+                                            @if (item.action === 'cambio_mesa') {
+                                                <span class="text-sm font-bold text-[#3B82F6]">Mesa {{ item.newData.tableNumber }}</span>
+                                            }
+                                            @if (item.action === 'cambio_entrega') {
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold" 
+                                                      [ngClass]="item.newData.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                                                    {{ item.newData.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            }
+        </div>
+    </div>
+</div>

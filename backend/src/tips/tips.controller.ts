@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, Param, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, UseGuards, Req, Patch } from '@nestjs/common';
 import { TipsService } from './tips.service';
 import { CreateTipDto } from './create-tip.dto';
 import { FilterTipDto } from './filter-tip.dto';
@@ -37,4 +37,10 @@ export class TipsController {
     getDetails(@Param('id') id: string) {
         return this.tipsService.getTipDetails(+id);
     }
+
+    @Patch(':id')
+    @ApiOperation({ summary: 'Actualizar una propina existente' })
+    update(@Param('id') id: string, @Body() updateTipDto: any, @Req() req: any) {
+        return this.tipsService.update(+id, updateTipDto, req.user.userId);
+    }    
 }

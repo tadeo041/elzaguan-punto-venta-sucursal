@@ -9,8 +9,12 @@
         <div
             class="flex justify-between items-start p-6 pb-4 bg-modal-bg-encabezado-footer border-b border-border-general shrink-0">
             <div>
-                <h2 class="text-xl font-bold text-modal-encabezado">Registrar propina</h2>
-                <p class="text-sm text-modal-parrafo mt-1">Ingresa los detalles de la propina recibida</p>
+                <h2 class="text-xl font-bold text-modal-encabezado">
+                    {{ esEdicion ? 'Editar propina' : 'Registrar propina' }}
+                </h2>
+                <p class="text-sm text-modal-parrafo mt-1">
+                        {{ esEdicion ? 'Modifica los detalles de la propina' : 'Ingresa los detalles de la propina recibida' }}
+                </p>
             </div>
             <button (click)="cerrarModal()" class="text-muted hover:text-heading transition-colors cursor-pointer mt-1">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
@@ -180,7 +184,7 @@
                     </path>
                 </svg>
                 } @else {
-                Registrar
+                    {{ esEdicion ? 'Actualizar' : 'Registrar' }}
                 }
             </button>
         </div>

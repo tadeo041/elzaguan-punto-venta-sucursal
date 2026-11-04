@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 // Modales
 import { ModalRegistrar } from './modal-registrar/modal-registrar';
+import { ModalDetalle } from './modal-detalle/modal-detalle';
 // Servicios
 import { TipsService } from '../../../services/tips'; 
 import { UsersService } from '../../../services/users'; 
@@ -10,7 +11,7 @@ import { UsersService } from '../../../services/users';
 @Component({
   selector: 'app-panel-general',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalRegistrar], 
+  imports: [CommonModule, FormsModule, ModalRegistrar, ModalDetalle], 
   templateUrl: './panel-general.html',
 })
 export class PanelGeneralComponent implements OnInit {
@@ -39,9 +40,12 @@ export class PanelGeneralComponent implements OnInit {
   pageSize = 7;
   Math = Math;
 
-  // Estado de los modales
+  // --- ESTADO DE LOS MODALES ---
   modalAbierto = false;
+  propinaAEditar: any = null; // Null = Crear, Objeto = Editar
 
+  modalDetalleAbierto = false;
+  tipSeleccionadaId: number | null = null;
 
   constructor(
     private tipsService: TipsService,
@@ -54,20 +58,18 @@ export class PanelGeneralComponent implements OnInit {
     this.cargarPropinas();
   }
 
-  // Establece el primer y último día del mes actual por defecto
+  // 1. Lógica de Fechas
   inicializarFechasPorDefecto() {
     const hoy = new Date();
     const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
     const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
 
-    // Formateamos a YYYY-MM-DD
     this.filtros.startDate = this.formatearFecha(primerDia);
     this.filtros.endDate = this.formatearFecha(ultimoDia);
     
     this.actualizarTextoFiltros();
   }
 
-  // Función auxiliar para formatear fechas
   formatearFecha(fecha: Date): string {
     const año = fecha.getFullYear();
     const mes = String(fecha.getMonth() + 1).padStart(2, '0');
@@ -75,7 +77,7 @@ export class PanelGeneralComponent implements OnInit {
     return `${año}-${mes}-${dia}`;
   }
 
-  // Genera el texto de "Filtros activos"
+  // 2. Lógica de Filtros
   actualizarTextoFiltros() {
     let textos = [];
 
@@ -95,15 +97,13 @@ export class PanelGeneralComponent implements OnInit {
       if (mesero) textos.push(`Mesero: ${mesero.name}`);
     }
 
-    // Si no hay textos, devolvemos un string vacío
     this.textoFiltrosActivos = textos.length > 0 ? textos.join(' | ') : '';
   }
 
+  // 3. Carga de Datos
   cargarMeseros() {
-    // Le pasamos el filtro isActive = 'true' a nuestra API
     this.usersService.getUsers({ isActive: 'true' }).subscribe({
       next: (users) => {
-        // Filtramos por los roles permitidos para recibir propinas
         const rolesPermitidos = ['mesero', 'cajero', 'gerente'];
         this.meseros = users.filter(u => rolesPermitidos.includes(u.role));
         this.actualizarTextoFiltros();
@@ -114,7 +114,7 @@ export class PanelGeneralComponent implements OnInit {
 
   cargarPropinas() {
     this.estadoVista = 'skeleton';
-    this.actualizarTextoFiltros(); // Actualizamos el texto cada vez que se busca
+    this.actualizarTextoFiltros();
 
     this.tipsService.getTips({
       ...this.filtros,
@@ -144,6 +144,7 @@ export class PanelGeneralComponent implements OnInit {
     });
   }
 
+  // 4. Acciones de Filtros y Paginación
   aplicarFiltros() {
     this.currentPage = 1;
     this.cargarPropinas();
@@ -175,17 +176,35 @@ export class PanelGeneralComponent implements OnInit {
     this.cargarPropinas();
   }
 
-  // Metodos de modales
+  // 5. Control de Modales
   abrirModalRegistro() {
+    this.propinaAEditar = null; // Aseguramos modo creación
+    this.modalAbierto = true;
+  }
+
+  abrirModalEditar(propina: any) {
+    this.propinaAEditar = propina; // Pasamos los datos para el modo edición
     this.modalAbierto = true;
   }
 
   onPropinaGuardada() {
     this.modalAbierto = false;
+    this.propinaAEditar = null;
     this.cargarPropinas(); // Recarga la tabla y los totales
   }
   
   cerrarModal() {
     this.modalAbierto = false;
+    this.propinaAEditar = null;
+  } 
+  
+  abrirModalDetalle(id: number) {
+    this.tipSeleccionadaId = id;
+    this.modalDetalleAbierto = true;
+  }
+
+  cerrarModalDetalle() {
+    this.modalDetalleAbierto = false;
+    this.tipSeleccionadaId = null;
   }  
 }

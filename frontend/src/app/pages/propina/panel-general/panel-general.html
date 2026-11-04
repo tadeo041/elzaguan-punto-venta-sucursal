@@ -45,7 +45,7 @@
                 <input type="date" [(ngModel)]="filtros.endDate" class="w-full px-3 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text focus:outline-none focus:border-input-focus-border">
             </div>
             <div class="flex gap-2 md:col-span-1">
-                <button (click)="aplicarFiltros()" class="flex-1 px-4 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-medium rounded-lg transition-colors cursor-pointer">Buscar</button>
+                <button (click)="aplicarFiltros()" class="flex-1 px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">Buscar</button>
                 <button (click)="limpiarFiltros()" class="flex-1 px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">Limpiar</button>
             </div>
         </div>
@@ -228,13 +228,13 @@
                                         <td class="px-6 py-4 text-sm font-semibold table-text-impor text-right w-[120px]">${{ item.amount }}</td>
                                         <td class="px-6 py-4 w-[150px]">
                                             <div class="flex items-center justify-end gap-2 text-table-text "> 
-                                                <button class="p-2 hover:text-table-boton-text-hove hover:bg-table-boton-bg-hover rounded-lg transition-colors" title="Ver detalle">
+                                                <button (click)="abrirModalDetalle(item.id)" class="p-2 hover:text-table-boton-text-hove hover:bg-table-boton-bg-hover rounded-lg transition-colors" title="Ver detalle">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
                                                 </button>
-                                                <button class="p-2 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
+                                                <button (click)="abrirModalEditar(item)" class="p-2 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Editar">
                                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                                     </svg>
@@ -281,7 +281,15 @@
 @if (modalAbierto) {
     <app-modal-registrar 
         [meseros]="meseros" 
+        [propinaAEditar]="propinaAEditar" 
         (cerrar)="cerrarModal()" 
         (propinaGuardada)="onPropinaGuardada()">
     </app-modal-registrar>
+}
+
+@if (modalDetalleAbierto && tipSeleccionadaId) {
+    <app-modal-detalle 
+        [tipId]="tipSeleccionadaId" 
+        (cerrar)="cerrarModalDetalle()">
+    </app-modal-detalle>
 }

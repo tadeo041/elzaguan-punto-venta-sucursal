@@ -33,4 +33,12 @@ export class TipsService {
   createTip(tip: any): Observable<any> {
     return this.http.post(this.apiUrl, tip);
   }  
+
+  getTipDetails(id: number): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${id}/details`);
+  }
+  
+  updateTip(id: number, tip: any): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}`, tip);
+  }  
 }

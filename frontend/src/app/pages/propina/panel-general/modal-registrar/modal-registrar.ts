@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TipsService } from '../../../../services/tips'; 
@@ -9,19 +9,24 @@ import { TipsService } from '../../../../services/tips';
   imports: [CommonModule, FormsModule],
   templateUrl: './modal-registrar.html',
 })
-export class ModalRegistrar {
-  // Recibimos la lista de meseros desde el componente padre
+export class ModalRegistrar implements OnChanges {
   @Input() meseros: any[] = [];
+  @Input() propinaAEditar: any = null;
   
-  // Eventos para avisar al padre
   @Output() cerrar = new EventEmitter<void>();
   @Output() propinaGuardada = new EventEmitter<void>();
 
-  // Modelo del formulario
-  nuevaPropina = {
+  esEdicion = false;
+
+  nuevaPropina: { 
+    tableNumber: number | null; 
+    amount: number | null; 
+    paymentType: number; 
+    waiterId: number | string; 
+  } = {
     tableNumber: null,
     amount: null,
-    paymentType: 1, // 1 = Efectivo por defecto
+    paymentType: 1,
     waiterId: ''
   };
 
@@ -29,6 +34,30 @@ export class ModalRegistrar {
   errorMessage = '';
 
   constructor(private tipsService: TipsService) {}
+
+  // Usamos ngOnChanges para reaccionar cuando el padre nos pasa la propina
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['propinaAEditar'] && changes['propinaAEditar'].currentValue) {
+      this.esEdicion = true;
+      const propina = changes['propinaAEditar'].currentValue;
+      
+      this.nuevaPropina = {
+        tableNumber: propina.tableNumber,
+        amount: Number(propina.amount),
+        paymentType: propina.paymentType,
+        waiterId: propina.waiter.id
+      };
+    } else {
+      // Si no nos pasan propina, es modo creación (limpiamos el formulario)
+      this.esEdicion = false;
+      this.nuevaPropina = {
+        tableNumber: null,
+        amount: null,
+        paymentType: 1,
+        waiterId: ''
+      };
+    }
+  }
 
   guardar() {
     this.errorMessage = '';
@@ -47,7 +76,11 @@ export class ModalRegistrar {
       waiterId: Number(this.nuevaPropina.waiterId)
     };
 
-    this.tipsService.createTip(payload).subscribe({
+    const peticion = this.esEdicion 
+      ? this.tipsService.updateTip(this.propinaAEditar.id, payload)
+      : this.tipsService.createTip(payload);
+
+    peticion.subscribe({
       next: () => {
         this.isLoading = false;
         this.propinaGuardada.emit(); 

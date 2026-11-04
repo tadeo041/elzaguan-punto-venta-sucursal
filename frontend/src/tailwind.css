@@ -41,7 +41,7 @@
     /* Boton de icono */
         --color-btn-icon: transparent;
         --color-btn-icon-text: #6b7280;
-        --color-btn-icon-hover: #F3F4F6;
+        --color-btn-icon-hover: #1e2939  ;
         --color-btn-icon-active: #E5E7EB;
         --color-btn-icon-disabled: transparent;
         --color-btn-icon-text-disabled: #D1D5DB;
@@ -141,4 +141,7 @@
         --color-modal-bg-body: #ffffff;
         --color-modal-encabezado: #111827; 
         --color-modal-parrafo: #6b7280;
+
+    /* Tarjeta de historal cambios */
+        --color-bg-card-history: #F9FBFD;
 }
