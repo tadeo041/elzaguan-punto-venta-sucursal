@@ -9,7 +9,6 @@ import { Router } from '@angular/router';
   standalone: true,
   imports: [FormsModule, CommonModule],
   templateUrl: './login.html',
-  styleUrl: './login.scss'
 })
 export class LoginComponent implements OnInit, OnDestroy {
   credentials = { username: '', password: '' };

@@ -11,10 +11,12 @@
         --color-border-general: #E2E8F0;
     
     /*  Jerarquia de textos (Tipografía) */
-        --color-heading: #111827;       
+        --color-heading: #111827; 
+        --color-subtitulo: #334155;      
         --color-body: #374151;          
         --color-muted: #6b7280;         
-        --color-label: #4b5563;         
+        --color-label: #4b5563;
+        --color-caption: #1e2939 ;        
 
     /* Boton primario */
         --color-btn-primary: #D5720D;       

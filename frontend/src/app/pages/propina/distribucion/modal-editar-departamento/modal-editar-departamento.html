@@ -1,0 +1,179 @@
+<!-- Fondo oscuro semitransparente -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+
+    <!-- Contenedor del Modal -->
+    <div class="bg-modal-bg-body w-full max-w-[480px] max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+
+        <!-- Encabezado (Fijo) -->
+        <div class="flex justify-between items-start p-6 pb-4 bg-modal-bg-encabezado-footer border-b border-border-general shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-modal-encabezado">Editar departamento</h2>
+                <p class="text-sm text-modal-parrafo mt-1">Modifica los datos del departamento</p>
+            </div>
+            <button (click)="cerrarModal()" class="text-muted hover:text-heading transition-colors cursor-pointer mt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                    stroke="currentColor" class="size-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Cuerpo del Modal (Con scroll) -->
+        <div class="p-6 flex flex-col gap-5 overflow-y-auto shrink">
+
+            <!-- Tooltip de Error -->
+            @if (errorMessage) {
+            <div class="text-input-error-text text-sm font-semibold bg-input-error-bg p-3 rounded-lg border border-input-error-border flex items-center gap-2 animate-fade-in">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 shrink-0">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {{ errorMessage }}
+            </div>
+            }
+
+            <!-- Nombre del Departamento -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-label-text">
+                    Nombre del departamento<span class="text-label-required">*</span>
+                </label>
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
+                        </svg>
+                    </div>
+                    <input type="text" [(ngModel)]="edicion.name" (input)="errorMessage = ''"
+                        placeholder="Ej. Cocina"
+                        class="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text placeholder-input-placeholder focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all">
+                </div>
+            </div>
+
+            <!-- Seleccione el tipo de propina -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-label-text">
+                    Seleccione el tipo de propina<span class="text-label-required">*</span>
+                </label>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Tarjeta Porcentaje -->
+                    <label class="cursor-pointer h-full">
+                        <input type="radio" [(ngModel)]="edicion.type" value="porcentaje" class="peer sr-only">
+
+                        <div class="h-full flex items-start gap-3 p-3 border border-input-border rounded-xl bg-input-bg 
+                                    peer-checked:border-blue-600 peer-checked:bg-blue-50 
+                                    peer-checked:ring-1 peer-checked:ring-blue-600 transition-all">
+                            <input type="radio" [(ngModel)]="edicion.type" value="porcentaje" class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 border-muted rounded-full 
+                                   checked:border-blue-600 checked:bg-blue-600 checked:shadow-[inset_0_0_0_3px_white] transition-all cursor-pointer">
+
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-heading">Porcentaje</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Ingresa el porcentaje que se asignará.</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Tarjeta Cantidad Fija -->
+                    <label class="cursor-pointer h-full">
+                        <input type="radio" [(ngModel)]="edicion.type" value="cantidad_fija" class="peer sr-only">
+
+                        <div class="h-full flex items-start gap-3 p-3 border border-input-border rounded-xl bg-input-bg 
+                                    peer-checked:border-blue-600 peer-checked:bg-blue-50 
+                                    peer-checked:ring-1 peer-checked:ring-blue-600 transition-all">
+                            <input type="radio" [(ngModel)]="edicion.type" value="cantidad_fija" class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 border-muted rounded-full 
+                                   checked:border-blue-600 checked:bg-blue-600 checked:shadow-[inset_0_0_0_3px_white] transition-all cursor-pointer">
+
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-heading">Cantidad fija</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Ingresa el monto fijo que se asignará.</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Valor y N° Trabajadores -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Valor -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-label-text">Valor<span class="text-label-required">*</span></label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                            @if (edicion.type === 'porcentaje') {
+                                <span class="font-bold text-lg">%</span>
+                            } @else {
+                                <span class="font-bold text-lg">$</span>
+                            }
+                        </div>
+                        <input type="number" [(ngModel)]="edicion.value" (input)="errorMessage = ''"
+                            placeholder="0" min="0"
+                            class="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text placeholder-input-placeholder focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all">
+                    </div>
+                </div>
+
+                <!-- N° Trabajadores -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-sm font-medium text-label-text">N° trabajadores<span class="text-label-required">*</span></label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                            </svg>
+                        </div>
+                        <input type="number" [(ngModel)]="edicion.workerCount" (input)="errorMessage = ''"
+                            placeholder="1" min="1"
+                            class="w-full pl-10 pr-4 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text placeholder-input-placeholder focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Select de Categoría / Icono -->
+            <div class="flex flex-col gap-1.5">
+                <label class="text-sm font-medium text-label-text">Categoría / ícono<span class="text-label-required">*</span></label>
+                <div class="relative">
+                    <div class="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                        </svg>
+                    </div>
+
+                    <select [(ngModel)]="edicion.icon" (change)="errorMessage = ''"
+                        class="w-full pl-10 pr-10 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text appearance-none focus:outline-none focus:border-input-focus-border focus:ring-1 focus:ring-input-focus-ring transition-all cursor-pointer">
+                        <option value="cocina">Cocina</option>
+                        <option value="barra">Barra</option>
+                        <option value="mesero">Mesero</option>
+                        <option value="limpieza">Limpieza</option>
+                        <option value="cajero">Cajero</option>
+                        <option value="otros">Otros</option>
+                    </select>
+
+                    <!-- Flecha del select -->
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer / Botones (Fijo) -->
+        <div class="p-5 flex justify-end gap-3 bg-modal-bg-encabezado-footer border-t border-border-general shrink-0 rounded-b-2xl">
+            <button (click)="cerrarModal()" [disabled]="isLoading"
+                class="px-6 py-2.5 bg-btn-secondary border border-btn-secondary-border text-btn-secondary-text font-medium rounded-lg hover:bg-btn-secondary-hover transition-colors cursor-pointer">
+                Cancelar
+            </button>
+            <button (click)="guardar()" [disabled]="isLoading"
+                class="px-6 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center min-w-[100px]">
+                @if (isLoading) {
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                } @else {
+                    Actualizar
+                }
+            </button>
+        </div>
+    </div>
+</div>
