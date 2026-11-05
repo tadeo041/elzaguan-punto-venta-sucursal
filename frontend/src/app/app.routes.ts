@@ -19,6 +19,9 @@ export const routes: Routes = [
                 // Ruta de soporte 
                 { path: 'soporte', loadComponent: () => import('./pages/soporte/soporte').then(m => m.Soporte) },
                 
+                // Ruta de bilioteca digital
+                { path: 'biblioteca', loadComponent: () => import('./pages/biblioteca/biblioteca').then(m => m.Biblioteca) },
+
                 { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
 
             ]
