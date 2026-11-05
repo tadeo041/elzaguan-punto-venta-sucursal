@@ -15,6 +15,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { TipsModule } from './tips/tips.module';
 import { DepartmentsModule } from './departments/departments.module';
+import { MetricsModule } from './metrics/metrics.module';
 
 
 @Module({
@@ -29,6 +30,7 @@ import { DepartmentsModule } from './departments/departments.module';
     AuthModule,
     TipsModule,
     DepartmentsModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
