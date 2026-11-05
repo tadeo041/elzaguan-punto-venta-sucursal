@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Patch, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Patch, Param, Delete } from '@nestjs/common';
 import { DepartmentsService } from './departments.service';
 import { CreateDepartmentDto } from './create-department.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
@@ -41,4 +41,10 @@ export class DepartmentsController {
     update(@Param('id') id: string, @Body() updateDto: any) {
         return this.departmentsService.update(+id, updateDto);
     }
+
+    @Delete(':id')
+    @ApiOperation({ summary: 'Eliminar un departamento' })
+    remove(@Param('id') id: string) {
+        return this.departmentsService.remove(+id);
+    }    
 }

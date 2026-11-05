@@ -3,7 +3,6 @@
     <!-- encabezado con filtros -->
     <div class="bg-bg-white rounded-2xl border border-border-general p-5 flex flex-col">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <!-- Titulo y texto -->
             <div class="flex items-center gap-4">
                 <div class="w-14 h-14 bg-header-bg-icon text-header-icon rounded-xl flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -21,7 +20,6 @@
                 </div>
             </div>
 
-            <!-- Fecha de inicio y boton de registrar -->
             <div class="flex items-center gap-3">
                 <div class="flex flex-col">
                     <label class="text-xs font-medium text-gray-500 mb-1">Fecha de inicio</label>
@@ -35,7 +33,6 @@
             </div>
         </div>
 
-        <!-- texto de filtros activos -->
         @if (textoFiltrosActivos !== '') {
             <div class="px-1 text-sm font-medium text-slate-500 -mt-4">
                 Filtros aplicados: <span class="font-normal">{{ textoFiltrosActivos }}</span>
@@ -43,12 +40,9 @@
         }
     </div>
 
-
-
     <!-- estado vacio -->
     @if (!loading && !hayDepartamentos) {
     <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[500px]">
-        <!-- Tarjeta Sin Balance -->
         <div class="bg-bg-white rounded-2xl border border-border-general flex flex-col items-center justify-center p-8 text-center h-full">
             <div class="w-16 h-16 bg-empty-bg text-empty-icon rounded-2xl flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-9">
@@ -60,7 +54,6 @@
             <p class="text-base font-normal text-empty-text">No se ha registrado ningún reparto de propinas</p>
         </div>
 
-        <!-- Tarjeta Sin Departamentos -->
         <div class="bg-bg-white rounded-2xl border border-border-general flex flex-col items-center justify-center p-8 text-center h-full">
             <div class="w-16 h-16 bg-empty-bg text-empty-icon rounded-2xl flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-9">
@@ -102,66 +95,61 @@
             </div>
         </div>
 
-        <!-- columna derecha: tarjetas -->
         <div class="bg-bg-white rounded-2xl border border-border-general p-6">
             <h2 class="text-lg font-bold text-subtitulo mb-6">Ajuste por departamento</h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 @for (dep of departamentos; track dep.id; let i = $index) {
-                <div class="border border-border-general rounded-xl p-5 relative group">
-
-                    <div class="absolute top-4 right-4">
-                        <button (click)="menuAbiertoId === dep.id ? menuAbiertoId = null : menuAbiertoId = dep.id"
-                            class="p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-100 cursor-pointer">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                                stroke="currentColor" class="size-5">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
-                            </svg>
-                        </button>
-
-                        @if (menuAbiertoId === dep.id) {
-                        <div
-                            class="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
-                            <button (click)="abrirModalEditar(dep); menuAbiertoId = null"
-                                class="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-                                Editar
+                    @if (dep.type !== 'sobrante') {
+                    <div class="border border-border-general rounded-xl p-5 relative group">
+                        <div class="absolute top-4 right-4">
+                            <button (click)="menuAbiertoId === dep.id ? menuAbiertoId = null : menuAbiertoId = dep.id"
+                                class="p-1 text-gray-400 hover:text-gray-700 transition-colors rounded-md hover:bg-gray-100 cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+                                </svg>
                             </button>
-                            <button (click)="eliminarDepartamento(dep.id)"
-                                class="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
-                                Eliminar
-                            </button>
-                        </div>
-                        }
-                    </div>
 
-                    <!-- contenedor del icono con los colores dinamicos -->
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 p-2"
-                            [style.background-color]="obtenerColorFondo(i)">
+                            @if (menuAbiertoId === dep.id) {
+                            <div class="absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 z-50">
+                                <button (click)="abrirModalEditar(dep); menuAbiertoId = null"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
+                                    Editar
+                                </button>
+                                <button (click)="eliminarDepartamento(dep)"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 font-semibold hover:bg-gray-50 flex items-center gap-2 cursor-pointer">
+                                    Eliminar
+                                </button>
+                            </div>
+                            }
+                        </div>
 
-                            <!-- inyeccion del svg con color dinamico -->
-                            <div [innerHTML]="obtenerIconoConColor(dep.icon, obtenerColor(i))" class="w-6 h-6"></div>
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 p-2"
+                                [style.background-color]="obtenerColorFondo(i)">
+                                <div [innerHTML]="obtenerIconoConColor(dep.icon, obtenerColor(i))" class="w-6 h-6"></div>
+                            </div>
+                            <h3 class="font-bold text-text-h1">{{ dep.name }}</h3>
                         </div>
-                        <h3 class="font-bold text-text-h1">{{ dep.name }}</h3>
-                    </div>
 
-                    <div class="space-y-3 text-sm">
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">{{ dep.type === 'porcentaje' ? 'Porcentaje (%)' : 'Cantidad fija
-                                ($)' }}</span>
-                            <span class="font-medium">{{ dep.value }}</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="text-gray-600">N° trabajadores</span>
-                            <span class="font-medium">{{ dep.workerCount }}</span>
-                        </div>
-                        <div class="flex justify-between items-center pt-2 border-t border-gray-100">
-                            <span class="font-medium text-gray-700">Propina individual</span>
-                            <span class="font-bold text-green-600">${{ dep.individualAmount | number:'1.2-2' }}</span>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">{{ dep.type === 'porcentaje' ? 'Porcentaje (%)' : 'Cantidad fija ($)' }}</span>
+                                <span class="font-medium">{{ dep.value }}</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">N° trabajadores</span>
+                                <span class="font-medium">{{ dep.workerCount }}</span>
+                            </div>
+                            <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                                <span class="font-medium text-gray-700">Propina individual</span>
+                                <span class="font-bold text-green-600">${{ dep.individualAmount | number:'1.2-2' }}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
+                    }
                 }
             </div>
         </div>
@@ -177,5 +165,13 @@
     @if (modalEditarAbierto && departamentoAEditar) {
     <app-modal-editar-departamento [departamento]="departamentoAEditar" (cerrar)="cerrarModales()"
         (guardado)="onDepartamentoGuardado()"></app-modal-editar-departamento>
+    }
+
+    @if (modalEliminarAbierto && departamentoAEliminar) {
+    <app-modal-eliminar-departamento 
+        [departamento]="departamentoAEliminar" 
+        (cerrar)="cerrarModalEliminar()" 
+        (eliminado)="onDepartamentoEliminado()">
+    </app-modal-eliminar-departamento>
     }
 </div>

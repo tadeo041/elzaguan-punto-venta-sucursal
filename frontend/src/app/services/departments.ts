@@ -30,4 +30,9 @@ export class DepartmentsService {
     const params = new HttpParams().set('startDate', startDate);
     return this.http.get<any>(`${this.apiUrl}/distribution`, { params });
   }
+
+  // Eliminar departamento
+  deleteDepartment(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`);
+  }  
 }

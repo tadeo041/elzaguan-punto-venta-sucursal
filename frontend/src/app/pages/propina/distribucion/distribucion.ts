@@ -9,6 +9,7 @@ import { DepartmentsService } from '../../../services/departments';
 
 import { ModalCrearDepartamento } from './modal-crear-departamento/modal-crear-departamento';
 import { ModalEditarDepartamento } from './modal-editar-departamento/modal-editar-departamento';
+import { ModalEliminarDepartamento } from './modal-eliminar-departamento/modal-eliminar-departamento';
 
 @Component({
   selector: 'app-distribucion',
@@ -18,14 +19,15 @@ import { ModalEditarDepartamento } from './modal-editar-departamento/modal-edita
     FormsModule, 
     BaseChartDirective, 
     ModalCrearDepartamento, 
-    ModalEditarDepartamento
+    ModalEditarDepartamento,
+    ModalEliminarDepartamento
   ],
   templateUrl: './distribucion.html',
 })
 export class Distribucion implements OnInit {
   // datos
   fechaInicio: string = '';
-  textoFiltrosActivos: string = ''; // <-- Nueva variable para el texto
+  textoFiltrosActivos: string = ''; 
   hayDepartamentos = false;
   loading = true;
   departamentos: any[] = [];
@@ -34,6 +36,8 @@ export class Distribucion implements OnInit {
   // modales y menús
   modalCrearAbierto = false;
   modalEditarAbierto = false;
+  modalEliminarAbierto = false;
+  departamentoAEliminar: any = null;  
   departamentoAEditar: any = null;
   menuAbiertoId: number | null = null; 
 
@@ -47,8 +51,8 @@ export class Distribucion implements OnInit {
     labels: [],
     datasets: [{
       data: [],
-      backgroundColor: ['#CA8A04', '#EA580C', '#DC2626', '#2563EB', '#7C3AED'],
-      hoverBackgroundColor: ['#A16207', '#C2410C', '#B91C1C', '#1D4ED8', '#6D28D9'],
+      backgroundColor: [],
+      hoverBackgroundColor: [],
       borderWidth: 0
     }]
   };
@@ -71,7 +75,6 @@ export class Distribucion implements OnInit {
     this.cargarDatos();
   }
 
-  // carga los svgs de la carpeta public
   cargarIconos() {
     const iconos = ['cocina', 'gerente', 'limpieza', 'mesero', 'barra', 'cajero'];
     iconos.forEach(icono => {
@@ -84,16 +87,42 @@ export class Distribucion implements OnInit {
 
   cargarDatos() {
     this.loading = true;
-    this.actualizarTextoFiltros(); // <-- Actualizamos el texto cada vez que se busca
+    this.actualizarTextoFiltros();
 
     this.departmentsService.getDistribution(this.fechaInicio).subscribe({
       next: (res) => {
         this.totalTips = res.totalTips;
-        this.departamentos = res.distribution;
-        this.hayDepartamentos = this.departamentos.length > 0;
+        let deps = res.distribution;
+
+        // Calculamos el sobrante
+        const totalAsignado = deps.reduce((sum: number, d: any) => sum + d.departmentTotal, 0);
+        const sobrante = this.totalTips - totalAsignado;
+
+        // Si hay sobrante, lo agregamos al arreglo
+        if (sobrante > 0.01) {
+          deps.push({
+            id: 'sobrante',
+            name: 'Sin asignar',
+            icon: 'otros',
+            departmentTotal: sobrante,
+            individualAmount: sobrante,
+            workerCount: 1,
+            type: 'sobrante',
+            value: 0
+          });
+        }
+
+        this.departamentos = deps;
+        this.hayDepartamentos = deps.length > 0;
         
+        // Actualizamos los datos del gráfico
         this.doughnutChartData.labels = this.departamentos.map(d => d.name);
         this.doughnutChartData.datasets[0].data = this.departamentos.map(d => d.departmentTotal);
+        
+        // Asignamos los colores base Y los colores de hover (para que no se ponga negro)
+        this.doughnutChartData.datasets[0].backgroundColor = this.departamentos.map((d, i) => this.obtenerColor(i));
+        this.doughnutChartData.datasets[0].hoverBackgroundColor = this.departamentos.map((d, i) => this.obtenerColorHover(i));
+        
         this.doughnutChartData = { ...this.doughnutChartData };
         this.loading = false;
       },
@@ -104,7 +133,6 @@ export class Distribucion implements OnInit {
     });
   }
 
-  // método para generar el texto del filtro aplicado
   actualizarTextoFiltros() {
     if (this.fechaInicio) {
       const fecha = new Date(this.fechaInicio + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -114,14 +142,27 @@ export class Distribucion implements OnInit {
     }
   }
 
-  // colores fuertes para texto/icono
   obtenerColor(index: number): string {
+    if (this.departamentos[index] && this.departamentos[index].type === 'sobrante') {
+      return '#9CA3AF'; // Gray-400
+    }
     const colores = ['#CA8A04', '#EA580C', '#DC2626', '#2563EB', '#7C3AED'];
     return colores[index % colores.length];
   }
 
-  // colores de fondo suaves
+  // Colores para el hover (un tono más oscuro para mantener la tonalidad)
+  obtenerColorHover(index: number): string {
+    if (this.departamentos[index] && this.departamentos[index].type === 'sobrante') {
+      return '#6B7280'; // Gray-500
+    }
+    const coloresHover = ['#A16207', '#C2410C', '#B91C1C', '#1D4ED8', '#6D28D9'];
+    return coloresHover[index % coloresHover.length];
+  }
+
   obtenerColorFondo(index: number): string {
+    if (this.departamentos[index] && this.departamentos[index].type === 'sobrante') {
+      return 'rgba(156, 163, 175, 0.25)'; // Gray-400 con opacidad
+    }
     const coloresBrillantes = [
       '250, 204, 21',
       '249, 115, 22',
@@ -133,7 +174,6 @@ export class Distribucion implements OnInit {
     return `rgba(${base}, 0.25)`; 
   }
 
-  // devuelve el svg con el color aplicado o el icono de otros
   obtenerIconoConColor(icono: string, color: string): SafeHtml {
     if (icono === 'otros' || !this.svgIcons[icono]) {
       const svgOtros = `
@@ -171,11 +211,19 @@ export class Distribucion implements OnInit {
     this.cargarDatos(); 
   }
 
-  eliminarDepartamento(id: number) {
-    if (confirm('¿Estás seguro de que deseas eliminar este departamento?')) {
-      console.log('Eliminando departamento con ID:', id);
-      this.menuAbiertoId = null;
-      this.cargarDatos(); 
-    }
+  eliminarDepartamento(dep: any) {
+    this.departamentoAEliminar = dep;
+    this.modalEliminarAbierto = true;
+    this.menuAbiertoId = null; 
   }
+
+  cerrarModalEliminar() {
+    this.modalEliminarAbierto = false;
+    this.departamentoAEliminar = null;
+  }
+  
+  onDepartamentoEliminado() {
+    this.cerrarModalEliminar();
+    this.cargarDatos(); 
+  }  
 }

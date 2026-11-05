@@ -104,4 +104,17 @@ export class DepartmentsService {
 
         return await this.departmentRepository.save(department);
     }
+  // 5. Eliminar un departamento físicamente
+    async remove(id: number) {
+        const department = await this.departmentRepository.findOne({ where: { id } });
+        
+        if (!department) {
+        throw new NotFoundException('Departamento no encontrado');
+        }
+
+        // Eliminamos el registro de la base de datos
+        await this.departmentRepository.remove(department);
+
+        return { message: 'Departamento eliminado correctamente' };
+    }    
 }
