@@ -1,8 +1,8 @@
 <aside [ngClass]="isCollapsed ? 'w-20' : 'w-64'"
     class="bg-sidebar-bg text-sidebar-text flex flex-col h-full transition-all duration-300 relative z-50 font-medium">
 
-    <!-- Encabezado (Logo y botón de colapsar) -->
-    <div class="h-24 flex items-center justify-center relative w-full px-4 border-b border-border-general shrink-0">
+    <!-- Encabezado (Logo y botón de colapsar) - h-20 (80px) -->
+    <div class="h-20 flex items-center justify-center relative w-full px-4 shrink-0">
         
         <!-- Logo Abierto-->
         <div *ngIf="!isCollapsed" class="w-full h-full flex items-center justify-center">
@@ -14,8 +14,9 @@
             <img src="/logo/logoSidebarCerrado.svg" alt="El Zaguán" class="w-12 h-12 object-contain">
         </div>
 
+        <!-- Botón para colapsar/expandir (Ajustado a top-6 para centrarse en h-20) -->
         <button (click)="toggleSidebar()"
-            class="absolute -right-3 top-8 bg-bg-secundario border border-border-general rounded-full p-1 text-text-caption hover:text-primario shadow-sm transition-colors z-50 hover:bg-gray-50">
+            class="absolute -right-3 top-6 bg-bg-secundario border border-border-general rounded-full p-1 text-text-caption hover:text-primario shadow-sm transition-colors z-50 hover:bg-gray-50 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-300"
                 [ngClass]="isCollapsed ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -135,7 +136,8 @@
             <!-- Biblioteca -->
             <div class="relative group">
                 <a routerLink="/biblioteca" 
-                   routerLinkActive="text-sidebar-active-text font-semibold bg-sidebar-active-bg" class="flex items-center gap-3 px-3 py-3 rounded-lg transition-colors hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text cursor-pointer">
+                   routerLinkActive="text-sidebar-active-text font-semibold bg-sidebar-active-bg" 
+                   class="flex items-center gap-3 px-3 py-3 rounded-lg transition-colors hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text cursor-pointer">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
                     </svg>
