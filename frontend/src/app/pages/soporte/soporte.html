@@ -1,0 +1,183 @@
+<div class="flex flex-col gap-6 w-full ">
+
+    <!-- ENCABEZADO -->
+    <div class="bg-bg-white rounded-2xl border border-border-general p-5 flex items-center gap-4">
+        <div class="w-14 h-14 bg-header-bg-icon text-header-icon rounded-xl flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-heading tracking-tight">Centro de Soporte</h1>
+            <p class="text-body mt-1 text-base">¿Tienes alguna duda, problema o sugerencia? Estamos para ayudarte.</p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        <!-- Columna izquierda: Contacto -->
+        <div class="lg:col-span-1 flex flex-col gap-4 sticky top-0">
+            
+            <!-- Tarjeta de Soporte Técnico -->
+            <div class="bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col gap-4">
+                <h2 class="text-lg font-bold text-subtitulo mb-2">Contacto Directo</h2>
+                
+                <!-- WhatsApp -->
+                <a href="https://wa.me/526183316693" target="_blank" class="flex items-center gap-4 p-4 rounded-xl border border-border-general hover:bg-gray-50 transition-colors cursor-pointer group">
+                    <div>
+                        <p class="font-semibold text-text-h3">WhatsApp</p>
+                        <p class="text-sm text-gray-500">+52 6183316693</p>
+                    </div>
+                </a>
+
+                <!-- Correo -->
+                <a href="mailto:josemanueltadeo2003@gmail.com?subject=Soporte%20El%20Zaguán&body=Hola,%20necesito%20ayuda%20con:" class="flex items-center gap-4 p-4 rounded-xl border border-border-general hover:bg-gray-50 transition-colors cursor-pointer group">
+                    <div>
+                        <p class="font-semibold text-text-h3">Correo Electrónico</p>
+                        <p class="text-sm text-gray-500">josemanueltadeo2003@gmail.com</p>
+                    </div>
+                </a>
+                
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-2">
+                    <p class="text-sm text-blue-800 font-medium text-center">
+                        Horario de atención: <br> Lunes a Domingo de 11:00 AM a 6:00 PM.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Tarjeta de Versión -->
+            <div class="bg-bg-white rounded-2xl border border-border-general p-4 flex justify-between items-center">
+                <span class="text-sm text-gray-500 font-medium">Versión del sistema</span>
+                <span class="text-sm font-bold text-gray-800">v1.0.0</span>
+            </div>
+        </div>
+
+        <!-- Columna derecha: Preguntas frecuentes -->
+        <div class="lg:col-span-2 bg-bg-white rounded-2xl border border-border-general p-6">
+            <h2 class="text-lg font-bold text-subtitulo mb-6">Preguntas Frecuentes</h2>
+
+            <div class="flex flex-col gap-4">
+                
+                <!-- MÓDULO: GENERAL -->
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">General</h3>
+                    
+                    <!-- Pregunta 1 -->
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q1')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Cómo inicio sesión en el sistema?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q1' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q1') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                Para iniciar sesión, debes ingresar el nombre de usuario y contraseña que te proporcionó el gerente de la sucursal. Si olvidaste tu contraseña, contacta al administrador del sistema.
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Pregunta 2 -->
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q2')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Qué hago si el sistema se congela o no responde?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q2' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q2') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                Primero, intenta esperar unos segundos. Si sigue sin responder, cierra la ventana de la aplicación y vuelve a abrirla. Si el problema persiste, reinicia la computadora o contáctanos por WhatsApp.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- MÓDULO: PANEL GENERAL -->
+                <div class="mt-4">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">Panel General de Propinas</h3>
+                    
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q3')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Cómo registro una nueva propina?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q3' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q3') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                Ve a la sección "Panel general", haz clic en el botón "Registrar propina" (arriba a la derecha), llena los campos (método de pago, mesero, número de mesa y monto) y haz clic en "Registrar".
+                            </div>
+                        }
+                    </div>
+
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q4')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Puedo editar o eliminar una propina ya registrada?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q4' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q4') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                Sí. En la tabla de propinas, busca la fila del registro. A la derecha verás dos íconos: un <strong>lápiz (Editar)</strong> y un <strong>ojo (Ver detalle)</strong>. Haz clic en el lápiz para modificar los datos. Cualquier cambio quedará registrado en el historial.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- MÓDULO: DISTRIBUCIÓN -->
+                <div class="mt-4">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">Distribución</h3>
+                    
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q5')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Qué significa el color gris en la gráfica de dona?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q5' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q5') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                El color gris representa el <strong>"Dinero sin asignar"</strong>. Es la cantidad de propinas que aún no has repartido entre los departamentos. Si quieres que desaparezca, debes crear o editar departamentos hasta que la suma de sus porcentajes o montos cubra el 100% de las propinas.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q6')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Cómo creo un nuevo departamento para repartir propinas?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q6' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q6') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                En la pantalla de "Distribución", haz clic en "Crear departamento". Elige un nombre (ej. Cocina), selecciona si el reparto será por porcentaje o cantidad fija, ingresa el valor, el número de trabajadores y el ícono representativo.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- MÓDULO: MÉTRICAS -->
+                <div class="mt-4">
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-1">Métricas</h3>
+                    
+                    <div class="border border-border-general rounded-xl mb-2 overflow-hidden">
+                        <button (click)="togglePregunta('q7')" class="w-full text-left px-5 py-4 bg-gray-50 hover:bg-gray-100 flex justify-between items-center transition-colors">
+                            <span class="font-semibold text-text-h3">¿Cómo filtro las métricas por Día, Semana, Mes o Año?</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5 text-gray-500 transition-transform" [ngClass]="preguntaAbierta === 'q7' ? 'rotate-180' : ''">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                            </svg>
+                        </button>
+                        @if (preguntaAbierta === 'q7') {
+                            <div class="px-5 py-4 text-sm text-gray-600 border-t border-border-general bg-white">
+                                En la parte superior derecha de la pantalla de Métricas o Reportes, verás un selector con las opciones <strong>Día, Semana, Mes y Año</strong>. Al hacer clic en cualquiera de ellos, todos los gráficos y números se actualizarán automáticamente para mostrar la información de ese periodo.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

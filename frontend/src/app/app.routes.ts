@@ -16,8 +16,11 @@ export const routes: Routes = [
                 { path: 'propina/panel', loadComponent: () => import('./pages/propina/panel-general/panel-general').then(m => m.PanelGeneralComponent) },
                 { path: 'propina/distribucion', loadComponent: () => import('./pages/propina/distribucion/distribucion').then(m => m.Distribucion) },
                 { path: 'propina/reportes', loadComponent: () => import('./pages/propina/reportes/reportes').then(m => m.Reportes) },
+                // Ruta de soporte 
+                { path: 'soporte', loadComponent: () => import('./pages/soporte/soporte').then(m => m.Soporte) },
                 
                 { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
+
             ]
         },
     { path: '**', redirectTo: 'login' }

@@ -119,7 +119,6 @@ export class Distribucion implements OnInit {
         this.doughnutChartData.labels = this.departamentos.map(d => d.name);
         this.doughnutChartData.datasets[0].data = this.departamentos.map(d => d.departmentTotal);
         
-        // Asignamos los colores base Y los colores de hover (para que no se ponga negro)
         this.doughnutChartData.datasets[0].backgroundColor = this.departamentos.map((d, i) => this.obtenerColor(i));
         this.doughnutChartData.datasets[0].hoverBackgroundColor = this.departamentos.map((d, i) => this.obtenerColorHover(i));
         
