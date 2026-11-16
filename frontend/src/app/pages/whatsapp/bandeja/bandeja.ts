@@ -73,7 +73,6 @@ export class Bandeja implements OnInit, OnDestroy {
     }
   }
 
-  // ---------- Fechas y Filtros ----------
   inicializarFechasPorDefecto() {
     const hoy = new Date();
     const hace7 = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 7);
@@ -87,6 +86,35 @@ export class Bandeja implements OnInit, OnDestroy {
     const mes = String(fecha.getMonth() + 1).padStart(2, '0');
     const dia = String(fecha.getDate()).padStart(2, '0');
     return `${año}-${mes}-${dia}`;
+  }
+
+  formatearTelefono(telefono: string): string {
+    if (!telefono) return '';
+
+    let limpio = telefono.replace(/\D/g, '');
+
+    // 521XXXXXXXXXX (13 dígitos, formato WhatsApp México) -> quitar el 1
+    if (limpio.startsWith('521') && limpio.length === 13) {
+      limpio = '52' + limpio.substring(3);
+    }
+
+    // 52XXXXXXXXXX (12 dígitos) -> +52 LLL PPP AAAA
+    if (limpio.startsWith('52') && limpio.length === 12) {
+      const lada = limpio.substring(2, 5);
+      const parte1 = limpio.substring(5, 8);
+      const parte2 = limpio.substring(8, 12);
+      return `+52 ${lada} ${parte1} ${parte2}`;
+    }
+
+    // 10 dígitos sueltos -> +52 LLL PPP AAAA
+    if (limpio.length === 10) {
+      const lada = limpio.substring(0, 3);
+      const parte1 = limpio.substring(3, 6);
+      const parte2 = limpio.substring(6, 10);
+      return `+52 ${lada} ${parte1} ${parte2}`;
+    }
+
+    return telefono;
   }
 
   actualizarTextoFiltros() {
@@ -104,7 +132,6 @@ export class Bandeja implements OnInit, OnDestroy {
     this.textoFiltrosActivos = textos.join(' | ');
   }
 
-  // ---------- Carga desde Backend ----------
   cargarConversaciones() {
     this.estadoVista = 'skeleton';
     this.actualizarTextoFiltros();
@@ -160,7 +187,6 @@ export class Bandeja implements OnInit, OnDestroy {
     });
   }
 
-  // ---------- Filtros / paginación ----------
   aplicarFiltros() { this.currentPage = 1; this.cargarConversaciones(); }
 
   limpiarFiltros() {
@@ -179,7 +205,6 @@ export class Bandeja implements OnInit, OnDestroy {
     this.cargarConversaciones();
   }
 
-  // ---------- Bot IA ----------
   toggleBot(conv: Conversacion, event: Event) {
     event.stopPropagation();
 
@@ -205,7 +230,6 @@ export class Bandeja implements OnInit, OnDestroy {
     }
   }
 
-  // ---------- Panel de chat ----------
   abrirChat(conv: Conversacion) {
     this.conversacionSeleccionadaId = conv.id;
     conv.noLeidos = 0;

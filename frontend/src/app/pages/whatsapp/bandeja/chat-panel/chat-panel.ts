@@ -78,6 +78,14 @@ export class ChatPanel implements OnInit, OnChanges, OnDestroy {
     return this.cliente?.estado === 'closed';
   }
 
+  private normalizarTelefonoMx(telefono: string): string {
+    if (!telefono) return telefono;
+    if (telefono.startsWith('521') && telefono.length === 13) {
+      return '52' + telefono.substring(3);
+    }
+    return telefono;
+  }
+
   private iniciarAutoRefresh() {
     this.detenerAutoRefresh();
     this.refreshInterval = setInterval(() => {
@@ -104,7 +112,7 @@ export class ChatPanel implements OnInit, OnChanges, OnDestroy {
         this.cliente = {
           id: conv.id,
           nombre: conv.name || 'Cliente',
-          telefono: conv.phoneNumber,
+          telefono: this.normalizarTelefonoMx(conv.phoneNumber),
           initials: (conv.name || 'Cliente').substring(0, 2).toUpperCase(),
           enLinea: false,
           ventanaAbierta: conv.lastMessageAt
@@ -230,4 +238,26 @@ export class ChatPanel implements OnInit, OnChanges, OnDestroy {
     const el = this.chatScroll?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
   }
+
+  formatearTelefono(telefono: string): string {
+    if (!telefono) return '';
+
+    const limpio = telefono.replace(/\D/g, '');
+
+    if (limpio.startsWith('52') && limpio.length === 12) {
+      const lada = limpio.substring(2, 5);
+      const parte1 = limpio.substring(5, 8);
+      const parte2 = limpio.substring(8, 12);
+      return `+52 ${lada} ${parte1} ${parte2}`;
+    }
+
+    if (limpio.length === 10) {
+      const lada = limpio.substring(0, 3);
+      const parte1 = limpio.substring(3, 6);
+      const parte2 = limpio.substring(6, 10);
+      return `+52 ${lada} ${parte1} ${parte2}`;
+    }
+
+    return telefono;
+  }  
 }
