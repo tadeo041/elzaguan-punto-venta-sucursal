@@ -12,9 +12,10 @@ import { filter } from 'rxjs/operators';
 })
 export class SidebarComponent implements OnInit {
   isCollapsed = false;
-  menuAbierto: string | null = 'propina'; 
+  menuAbierto: string | null = 'propina';
   menuColapsadoAbierto: string | null = null;
-  enRutaPropina = false; 
+  enRutaPropina = false;
+  enRutaWhatsapp = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -23,18 +24,23 @@ export class SidebarComponent implements OnInit {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       const url = event.urlAfterRedirects;
+
+      // Rutas activas
       this.enRutaPropina = url.includes('/propina');
-      
-      // Si navegamos a una ruta de propina, abrimos el acordeón normal
+      this.enRutaWhatsapp = url.includes('/whatsapp'); // <-- NUEVO
+
+      // Auto-abrir el acordeón correspondiente (solo en modo expandido)
       if (this.enRutaPropina) {
         this.menuAbierto = 'propina';
+      } else if (this.enRutaWhatsapp) {
+        this.menuAbierto = 'whatsapp'; 
       }
     });
   }
 
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
-    this.menuColapsadoAbierto = null; 
+    this.menuColapsadoAbierto = null;
   }
 
   toggleMenu(menu: string) {

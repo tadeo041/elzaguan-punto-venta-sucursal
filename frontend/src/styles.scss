@@ -1,0 +1,31 @@
+/* Animación para submenús expandidos (baja desde arriba) */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 220ms ease-out;
+}
+
+/* Animación para popover colapsado (entra desde la izquierda) */
+@keyframes fadeInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-fade-in-left {
+    animation: fadeInLeft 200ms ease-out;
+}
