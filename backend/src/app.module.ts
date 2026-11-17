@@ -19,6 +19,8 @@ import { TipsModule } from './tips/tips.module';
 import { DepartmentsModule } from './departments/departments.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
+import { ConfiguracionModule } from './config/configuracion.module';
+
 
 @Module({
     imports: [
@@ -29,6 +31,7 @@ import { WhatsappModule } from './whatsapp/whatsapp.module';
             entities: [User, Tip, TipHistory, Department, Conversation, Message],
             synchronize: true,
         }),
+        ConfiguracionModule,
         UsersModule,
         AuthModule,
         TipsModule,

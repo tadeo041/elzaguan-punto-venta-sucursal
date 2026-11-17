@@ -1,7 +1,6 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
+import { Repository } from 'typeorm';
 import axios from 'axios';
 
 import {
@@ -18,8 +17,9 @@ import {
 } from './entities/message.entity';
 import { BotService } from './bot.service';
 import { ListConversationsDto } from './dto/list-conversations.dto';
+import { ConfiguracionService } from '../config/configuracion.service';
 
-const VENTANA_MS = 24 * 60 * 60 * 1000; // 24 horas
+const VENTANA_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class WhatsappService {
@@ -31,13 +31,13 @@ export class WhatsappService {
         @InjectRepository(Message)
         private messageRepo: Repository<Message>,
         private botService: BotService,
-        private config: ConfigService,
+        private configuracionService: ConfiguracionService,
     ) {}
 
     // ================= WEBHOOK =================
 
     verificarWebhook(mode: string, token: string, challenge: string): string {
-        const verifyToken = this.config.get<string>('WHATSAPP_VERIFY_TOKEN');
+        const verifyToken = this.configuracionService.obtener('WHATSAPP_VERIFY_TOKEN');
         if (mode === 'subscribe' && token === verifyToken) {
             this.logger.log('✅ Webhook verificado por Meta');
             return challenge;
@@ -70,24 +70,30 @@ export class WhatsappService {
 
     // ================= MENSAJE ENTRANTE =================
 
+    private normalizarTelefonoMx(telefono: string): string {
+        if (!telefono) return telefono;
+        if (telefono.startsWith('521') && telefono.length === 13) {
+            return '52' + telefono.substring(3);
+        }
+        return telefono;
+    }
+
     private async procesarMensajeEntrante(msg: any, contact: any): Promise<void> {
         if (msg.type !== 'text') {
             this.logger.warn(`Mensaje tipo "${msg.type}" ignorado (solo texto por ahora)`);
             return;
         }
 
-        const telefono: string = msg.from;
+        const telefono: string = this.normalizarTelefonoMx(msg.from);
         const texto: string = msg.text?.body ?? '';
         const whatsappMessageId: string = msg.id;
         const nombrePerfil: string = contact?.profile?.name ?? 'Cliente';
 
-        // Deduplicar
         const duplicado = await this.messageRepo.findOne({
             where: { whatsappMessageId },
         });
         if (duplicado) return;
 
-        // 1. Buscar o crear conversación
         let conversation = await this.conversationRepo.findOne({
             where: { phoneNumber: telefono },
         });
@@ -103,7 +109,6 @@ export class WhatsappService {
             this.logger.log(`📥 Nueva conversación con ${nombrePerfil} (${telefono})`);
         }
 
-        // 2. Guardar mensaje del cliente
         const ahora = new Date();
         await this.messageRepo.save(
             this.messageRepo.create({
@@ -117,17 +122,14 @@ export class WhatsappService {
             }),
         );
 
-        // 3. Actualizar conversación: cliente escribió → OPEN
         conversation.lastMessagePreview = texto;
         conversation.lastMessageOrigin = LastMessageOrigin.CLIENTE;
         conversation.lastMessageAt = ahora;
         conversation.lastClientMessageAt = ahora;
         conversation.unreadCount += 1;
-        // Reabre la conversación siempre que el cliente escriba (ventana 24h)
         conversation.status = ConversationStatus.OPEN;
         await this.conversationRepo.save(conversation);
 
-        // 4. Responder con bot si está activo
         if (conversation.botActivo) {
             const { response } = this.botService.generarRespuesta(texto, conversation.name);
             await this.enviarTexto(conversation, response, MessageOrigin.BOT);
@@ -141,9 +143,9 @@ export class WhatsappService {
         texto: string,
         origen: MessageOrigin = MessageOrigin.HUMANO,
     ): Promise<Message> {
-        const phoneNumberId = this.config.get<string>('WHATSAPP_PHONE_NUMBER_ID');
-        const accessToken = this.config.get<string>('WHATSAPP_ACCESS_TOKEN');
-        const apiVersion = this.config.get<string>('WHATSAPP_API_VERSION') ?? 'v25.0';
+        const phoneNumberId = this.configuracionService.obtener('WHATSAPP_PHONE_NUMBER_ID');
+        const accessToken = this.configuracionService.obtener('WHATSAPP_ACCESS_TOKEN');
+        const apiVersion = this.configuracionService.obtener('WHATSAPP_API_VERSION') ?? 'v25.0';
         const url = `https://graph.facebook.com/${apiVersion}/${phoneNumberId}/messages`;
 
         const mensaje = this.messageRepo.create({
@@ -177,7 +179,6 @@ export class WhatsappService {
             saved.whatsappMessageId = data?.messages?.[0]?.id;
             await this.messageRepo.save(saved);
 
-            // Actualizar conversación: respondimos nosotros o el bot
             conversation.lastMessagePreview = texto;
             conversation.lastMessageOrigin =
                 origen === MessageOrigin.BOT ? LastMessageOrigin.BOT : LastMessageOrigin.HUMANO;
@@ -214,17 +215,9 @@ export class WhatsappService {
         await this.messageRepo.save(mensaje);
     }
 
-    /**
-     * Regla de negocio:
-     *  - Si el último mensaje fue del cliente y no respondimos en 24h → CLOSED.
-     *  - Si respondimos y el cliente no ha vuelto a escribir en 24h → CLOSED.
-     *  - Si el último mensaje fue del cliente y no hay respuesta nuestra → PENDING.
-     *  - Si el último mensaje fue nuestro/bot y estamos dentro de ventana → OPEN.
-     */
     async actualizarEstadosPorVentana(): Promise<void> {
         const ahora = Date.now();
 
-        // Traemos solo conversaciones que no estén ya cerradas y con fecha de último mensaje
         const abiertas = await this.conversationRepo
             .createQueryBuilder('c')
             .where('c.status != :closed', { closed: ConversationStatus.CLOSED })
@@ -240,13 +233,11 @@ export class WhatsappService {
             const dentroVentana = ahora - lastAt < VENTANA_MS;
 
             if (!dentroVentana) {
-                // Pasaron más de 24h desde el último mensaje → cerrada
                 conv.status = ConversationStatus.CLOSED;
                 paraGuardar.push(conv);
                 continue;
             }
 
-            // Dentro de ventana: si el último mensaje fue del cliente, está pendiente
             if (conv.lastMessageOrigin === LastMessageOrigin.CLIENTE) {
                 conv.status = ConversationStatus.PENDING;
             } else {
@@ -262,24 +253,11 @@ export class WhatsappService {
 
     // ================= API PARA EL FRONTEND =================
 
-    /**
-     * Lista conversaciones con filtros + paginación en servidor.
-     * Devuelve también stats globales (sobre el total filtrado, sin paginar).
-     */
     async listarConversaciones(dto: ListConversationsDto) {
-        // 1. Refrescar estados antes de listar
         await this.actualizarEstadosPorVentana();
 
-        const {
-            search,
-            status,
-            startDate,
-            endDate,
-            page = 1,
-            limit = 7,
-        } = dto;
+        const { search, status, startDate, endDate, page = 1, limit = 7 } = dto;
 
-        // 2. Construir query base con filtros
         const qb = this.conversationRepo.createQueryBuilder('c');
 
         if (status) {
@@ -306,11 +284,8 @@ export class WhatsappService {
             );
         }
 
-        // 3. Conteo total filtrado (para paginación)
         const total = await qb.getCount();
 
-        // 4. Stats globales (sobre el filtro, ignorando paginación).
-        //    Usamos una copia del query para no alterar el principal.
         const statsQb = qb.clone();
         const todasFiltradas = await statsQb.getMany();
 
@@ -322,7 +297,6 @@ export class WhatsappService {
             botsActivos: todasFiltradas.filter((c) => c.botActivo).length,
         };
 
-        // 5. Paginación real
         const totalPages = Math.max(1, Math.ceil(total / limit));
         const safePage = Math.min(page, totalPages);
         const skip = (safePage - 1) * limit;
@@ -333,14 +307,7 @@ export class WhatsappService {
             .take(limit)
             .getMany();
 
-        return {
-            data,
-            total,
-            page: safePage,
-            limit,
-            totalPages,
-            stats,
-        };
+        return { data, total, page: safePage, limit, totalPages, stats };
     }
 
     async getConversacionConMensajes(id: number) {

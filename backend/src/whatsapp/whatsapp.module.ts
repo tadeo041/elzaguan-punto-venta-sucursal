@@ -5,9 +5,13 @@ import { WhatsappService } from './whatsapp.service';
 import { BotService } from './bot.service';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
+import { ConfiguracionModule } from '../config/configuracion.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Conversation, Message])],
+    imports: [
+        TypeOrmModule.forFeature([Conversation, Message]),
+        ConfiguracionModule,
+    ],
     controllers: [WhatsappController],
     providers: [WhatsappService, BotService],
     exports: [WhatsappService],
