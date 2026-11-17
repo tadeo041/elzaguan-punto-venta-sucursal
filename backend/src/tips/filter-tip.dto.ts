@@ -4,15 +4,18 @@ import { Type } from 'class-transformer';
 import { PaymentType } from './tip.entity';
 
 export class FilterTipDto {
-    @ApiPropertyOptional({ description: 'ID del mesero para filtrar', example: 2 })
+    @ApiPropertyOptional({
+        description: 'ID del usuario que recibió la propina',
+        example: 2,
+    })
     @IsOptional()
     @Type(() => Number)
     @IsInt()
-    waiterId?: number;
+    receivedById?: number;
 
     @ApiPropertyOptional({
         description: 'Tipo de propina (1 = Efectivo, 2 = Tarjeta)',
-        enum: PaymentType
+        enum: PaymentType,
     })
     @IsOptional()
     @Type(() => Number)

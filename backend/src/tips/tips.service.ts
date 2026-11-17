@@ -19,16 +19,16 @@ export class TipsService {
     ) { }
 
     async create(createTipDto: CreateTipDto, userId: number) {
-        const { waiterId, ...tipData } = createTipDto;
+        const { receivedById, ...tipData } = createTipDto;
 
-        const waiter = await this.userRepository.findOne({ where: { id: waiterId } });
-        if (!waiter) throw new NotFoundException('Mesero no encontrado');
+        const receiver = await this.userRepository.findOne({ where: { id: receivedById } });
+        if (!receiver) throw new NotFoundException('Usuario receptor no encontrado');
 
         // 1. Guardamos la propina
-        const newTip = this.tipRepository.create({ ...tipData, waiter });
+        const newTip = this.tipRepository.create({ ...tipData, receivedBy: receiver });
         const savedTip = await this.tipRepository.save(newTip);
 
-        // 2. Creamos el registro en el historial (Inicio de registro)
+        // 2. Registro en el historial
         const history = this.historyRepository.create({
             tip: savedTip,
             action: ActionType.CREACION,
@@ -36,9 +36,9 @@ export class TipsService {
                 tableNumber: savedTip.tableNumber,
                 amount: Number(savedTip.amount),
                 paymentType: savedTip.paymentType,
-                waiterName: waiter.name
+                receivedByName: receiver.name,
             },
-            modifiedBy: { id: userId } as User // Guardamos quién lo hizo
+            modifiedBy: { id: userId } as User,
         });
         await this.historyRepository.save(history);
 
@@ -46,12 +46,12 @@ export class TipsService {
     }
 
     async findAllWithFilters(filters: FilterTipDto) {
-        const { waiterId, paymentType, startDate, endDate, page = 1, limit = 10 } = filters;
+        const { receivedById, paymentType, startDate, endDate, page = 1, limit = 10 } = filters;
 
         const query = this.tipRepository.createQueryBuilder('tip')
-            .leftJoinAndSelect('tip.waiter', 'waiter');
+            .leftJoinAndSelect('tip.receivedBy', 'receivedBy');
 
-        if (waiterId) query.andWhere('waiter.id = :waiterId', { waiterId });
+        if (receivedById) query.andWhere('receivedBy.id = :receivedById', { receivedById });
         if (paymentType) query.andWhere('tip.paymentType = :paymentType', { paymentType });
 
         if (startDate && endDate) {
@@ -91,39 +91,31 @@ export class TipsService {
                 total: Number(summary.total) || 0,
                 totalEfectivo: Number(summary.totalEfectivo) || 0,
                 totalTarjeta: Number(summary.totalTarjeta) || 0,
-            }
+            },
         };
     }
 
-    // NUEVO MÉTODO: Obtener detalle e historial
     async getTipDetails(id: number) {
         const tip = await this.tipRepository.findOne({
             where: { id },
-            relations: {
-                waiter: true // <-- Objeto en lugar de arreglo
-            }
+            relations: { receivedBy: true },
         });
 
         if (!tip) throw new NotFoundException('Propina no encontrada');
 
         const history = await this.historyRepository.find({
             where: { tip: { id } },
-            relations: {
-                modifiedBy: true // <-- Objeto en lugar de arreglo
-            },
-            order: { createdAt: 'DESC' }
+            relations: { modifiedBy: true },
+            order: { createdAt: 'DESC' },
         });
 
-        return {
-            tip,
-            history
-        };
+        return { tip, history };
     }
 
     async getResumen() {
         const tips = await this.tipRepository.find();
         let total = 0, totalEfectivo = 0, totalTarjeta = 0;
-        tips.forEach(tip => {
+        tips.forEach((tip) => {
             const monto = Number(tip.amount);
             total += monto;
             if (tip.paymentType === PaymentType.EFECTIVO) totalEfectivo += monto;
@@ -133,73 +125,69 @@ export class TipsService {
     }
 
     async update(id: number, updateTipDto: any, userId: number) {
-        // 1. Buscamos la propina original con su mesero actual
         const tip = await this.tipRepository.findOne({
             where: { id },
-            relations: { waiter: true }
+            relations: { receivedBy: true },
         });
         if (!tip) throw new NotFoundException('Propina no encontrada');
 
-        // 2. Buscamos al nuevo mesero (si es que lo cambiaron)
-        let nuevoMesero = tip.waiter;
-        if (updateTipDto.waiterId && updateTipDto.waiterId !== tip.waiter.id) {
-            const waiter = await this.userRepository.findOne({ where: { id: updateTipDto.waiterId } });
-            if (!waiter) throw new NotFoundException('Mesero no encontrado');
-            nuevoMesero = waiter;
+        // Cambio de receptor
+        let nuevoReceptor = tip.receivedBy;
+        if (updateTipDto.receivedById && updateTipDto.receivedById !== tip.receivedBy?.id) {
+            const receiver = await this.userRepository.findOne({ where: { id: updateTipDto.receivedById } });
+            if (!receiver) throw new NotFoundException('Usuario receptor no encontrado');
+            nuevoReceptor = receiver;
         }
 
-        // 3. Evaluamos los cambios y guardamos en el historial
-
-        // Cambio de Propina (Monto)
-        if (Number(updateTipDto.amount) !== Number(tip.amount)) {
+        // Historial: monto
+        if (updateTipDto.amount !== undefined && Number(updateTipDto.amount) !== Number(tip.amount)) {
             await this.historyRepository.save({
-                tip: tip,
+                tip,
                 action: ActionType.CAMBIO_MONTO,
                 previousData: { amount: Number(tip.amount) },
                 newData: { amount: Number(updateTipDto.amount) },
-                modifiedBy: { id: userId } as User
+                modifiedBy: { id: userId } as User,
             });
         }
 
-        // Cambio de Mesero
-        if (updateTipDto.waiterId && updateTipDto.waiterId !== tip.waiter.id) {
+        // Historial: receptor
+        if (updateTipDto.receivedById && updateTipDto.receivedById !== tip.receivedBy?.id) {
             await this.historyRepository.save({
-                tip: tip,
-                action: ActionType.CAMBIO_MESERO,
-                previousData: { waiterName: tip.waiter.name },
-                newData: { waiterName: nuevoMesero.name },
-                modifiedBy: { id: userId } as User
+                tip,
+                action: ActionType.CAMBIO_RECEPTOR,
+                previousData: { receivedByName: tip.receivedBy?.name ?? null },
+                newData: { receivedByName: nuevoReceptor?.name ?? null },
+                modifiedBy: { id: userId } as User,
             });
         }
 
-        // Cambio de N° Mesa
-        if (Number(updateTipDto.tableNumber) !== Number(tip.tableNumber)) {
+        // Historial: mesa
+        if (updateTipDto.tableNumber !== undefined && Number(updateTipDto.tableNumber) !== Number(tip.tableNumber)) {
             await this.historyRepository.save({
-                tip: tip,
+                tip,
                 action: ActionType.CAMBIO_MESA,
                 previousData: { tableNumber: Number(tip.tableNumber) },
                 newData: { tableNumber: Number(updateTipDto.tableNumber) },
-                modifiedBy: { id: userId } as User
+                modifiedBy: { id: userId } as User,
             });
         }
 
-        // Cambio de Tipo de Pago (Efectivo/Tarjeta)
-        if (Number(updateTipDto.paymentType) !== Number(tip.paymentType)) {
+        // Historial: tipo de pago
+        if (updateTipDto.paymentType !== undefined && Number(updateTipDto.paymentType) !== Number(tip.paymentType)) {
             await this.historyRepository.save({
-                tip: tip,
+                tip,
                 action: ActionType.CAMBIO_ENTREGA,
                 previousData: { paymentType: Number(tip.paymentType) },
                 newData: { paymentType: Number(updateTipDto.paymentType) },
-                modifiedBy: { id: userId } as User
+                modifiedBy: { id: userId } as User,
             });
         }
 
-        // 4. Finalmente, actualizamos la propina en la tabla principal
         Object.assign(tip, {
-            tableNumber: updateTipDto.tableNumber,
-            amount: updateTipDto.amount,
-            paymentType: updateTipDto.paymentType,
-            waiter: nuevoMesero
+            tableNumber: updateTipDto.tableNumber ?? tip.tableNumber,
+            amount: updateTipDto.amount ?? tip.amount,
+            paymentType: updateTipDto.paymentType ?? tip.paymentType,
+            receivedBy: nuevoReceptor,
         });
 
         return await this.tipRepository.save(tip);

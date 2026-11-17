@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+export interface Department {
+  id: number;
+  slug: 'gerente' | 'meseros' | 'cocina';
+  name: string;
+  icon: string;
+  sortOrder: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -10,29 +18,8 @@ export class DepartmentsService {
 
   constructor(private http: HttpClient) { }
 
-  // Obtener departamentos
-  getDepartments(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  // Solo lectura: el sistema ya tiene los 3 departamentos fijos
+  getDepartments(): Observable<Department[]> {
+    return this.http.get<Department[]>(this.apiUrl);
   }
-
-  // Crear departamento
-  createDepartment(department: any): Observable<any> {
-    return this.http.post(this.apiUrl, department);
-  }
-
-  // Actualizar departamento
-  updateDepartment(id: number, department: any): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}`, department);
-  }
-
-  // Obtener la distribución calculada desde una fecha
-  getDistribution(startDate: string): Observable<any> {
-    const params = new HttpParams().set('startDate', startDate);
-    return this.http.get<any>(`${this.apiUrl}/distribution`, { params });
-  }
-
-  // Eliminar departamento
-  deleteDepartment(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
-  }  
 }
