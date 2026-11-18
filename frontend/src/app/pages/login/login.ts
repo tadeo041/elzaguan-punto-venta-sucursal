@@ -13,7 +13,11 @@ import { Router } from '@angular/router';
 export class LoginComponent implements OnInit, OnDestroy {
   credentials = { username: '', password: '' };
   errorMessage = '';
+  successMessage = '';
   isLoading = false;
+
+  // Controla si la contraseña se muestra en texto plano o no
+  showPassword = false;
 
   // Lógica del Carrusel
   frases = [
@@ -39,17 +43,31 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Alterna entre mostrar/ocultar la contraseña
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   onSubmit() {
     this.isLoading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     this.authService.login(this.credentials).subscribe({
       next: (res) => {
-        this.router.navigate(['/dashboard']);
+        this.isLoading = false;
+        // Mensaje de éxito (verde)
+        this.successMessage = '¡Inicio de sesión correcto! Redirigiendo...';
+
+        // Pequeña espera para que el usuario vea el mensaje antes de navegar
+        setTimeout(() => {
+          this.router.navigate(['/dashboard']);
+        }, 1000);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error.message || 'Error al conectar con el servidor';
+        // Mensaje de error: inputs se ponen rojos y aparece el tooltip
+        this.errorMessage = err.error?.message || 'Usuario o contraseña incorrectos';
       }
     });
   }
