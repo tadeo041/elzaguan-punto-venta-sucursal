@@ -32,6 +32,15 @@ export class FilterTipDto {
     @IsDateString()
     endDate?: string;
 
+    @ApiPropertyOptional({
+        description: 'Offset de la zona horaria del cliente en minutos (ej. México = -360)',
+        example: -360,
+    })
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt()
+    tzOffsetMin?: number;
+
     @ApiPropertyOptional({ description: 'Número de página', example: 1, default: 1 })
     @IsOptional()
     @Type(() => Number)

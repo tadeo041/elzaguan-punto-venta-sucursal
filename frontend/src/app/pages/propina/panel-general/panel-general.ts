@@ -1,10 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// Modales
 import { ModalRegistrar } from './modal-registrar/modal-registrar';
 import { ModalDetalle } from './modal-detalle/modal-detalle';
-// Servicios
 import { TipsService } from '../../../services/tips';
 import { UsersService } from '../../../services/users';
 
@@ -17,11 +15,9 @@ import { UsersService } from '../../../services/users';
 export class PanelGeneralComponent implements OnInit {
   estadoVista: 'skeleton' | 'data' | 'empty' = 'skeleton';
 
-  // Estado para alternar el icono del chevron en los selects
   meseroAbierto = false;
   tipoAbierto = false;
 
-  // Filtros (ahora usa receivedById en lugar de waiterId)
   filtros = {
     receivedById: '',
     paymentType: '',
@@ -29,24 +25,20 @@ export class PanelGeneralComponent implements OnInit {
     endDate: ''
   };
 
-  // Para mostrar el texto de filtros activos
   textoFiltrosActivos: string = '';
 
-  // Datos que vienen de la API
   propinas: any[] = [];
   meseros: any[] = [];
   resumen = { total: 0, totalEfectivo: 0, totalTarjeta: 0 };
 
-  // Paginación
   currentPage = 1;
   totalPages = 1;
   totalRecords = 0;
   pageSize = 7;
   Math = Math;
 
-  // --- ESTADO DE LOS MODALES ---
   modalAbierto = false;
-  propinaAEditar: any = null; // Null = Crear, Objeto = Editar
+  propinaAEditar: any = null;
 
   modalDetalleAbierto = false;
   tipSeleccionadaId: number | null = null;
@@ -62,7 +54,6 @@ export class PanelGeneralComponent implements OnInit {
     this.cargarPropinas();
   }
 
-  // 1. Lógica de Fechas
   inicializarFechasPorDefecto() {
     const hoy = new Date();
     const hoyStr = this.formatearFecha(hoy);
@@ -80,7 +71,6 @@ export class PanelGeneralComponent implements OnInit {
     return `${año}-${mes}-${dia}`;
   }
 
-  // 2. Lógica de Filtros
   actualizarTextoFiltros() {
     let textos = [];
 
@@ -103,7 +93,6 @@ export class PanelGeneralComponent implements OnInit {
     this.textoFiltrosActivos = textos.length > 0 ? textos.join(' | ') : '';
   }
 
-  // 3. Carga de Datos
   cargarMeseros() {
     this.usersService.getUsers({ isActive: 'true' }).subscribe({
       next: (users) => {
@@ -119,8 +108,11 @@ export class PanelGeneralComponent implements OnInit {
     this.estadoVista = 'skeleton';
     this.actualizarTextoFiltros();
 
+    const tzOffsetMin = -new Date().getTimezoneOffset();
+
     this.tipsService.getTips({
       ...this.filtros,
+      tzOffsetMin,
       page: this.currentPage,
       limit: this.pageSize
     }).subscribe({
@@ -147,7 +139,6 @@ export class PanelGeneralComponent implements OnInit {
     });
   }
 
-  // 4. Acciones de Filtros y Paginación
   aplicarFiltros() {
     this.currentPage = 1;
     this.cargarPropinas();
@@ -188,21 +179,20 @@ export class PanelGeneralComponent implements OnInit {
     this.cargarPropinas();
   }
 
-  // 5. Control de Modales
   abrirModalRegistro() {
-    this.propinaAEditar = null; // Aseguramos modo creación
+    this.propinaAEditar = null;
     this.modalAbierto = true;
   }
 
   abrirModalEditar(propina: any) {
-    this.propinaAEditar = propina; // Pasamos los datos para el modo edición
+    this.propinaAEditar = propina;
     this.modalAbierto = true;
   }
 
   onPropinaGuardada() {
     this.modalAbierto = false;
     this.propinaAEditar = null;
-    this.cargarPropinas(); // Recarga la tabla y los totales
+    this.cargarPropinas();
   }
 
   cerrarModal() {

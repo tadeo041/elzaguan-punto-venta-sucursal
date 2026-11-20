@@ -17,6 +17,7 @@ export class TipsService {
     if (filters.paymentType) params = params.set('paymentType', filters.paymentType);
     if (filters.startDate) params = params.set('startDate', filters.startDate);
     if (filters.endDate) params = params.set('endDate', filters.endDate);
+    if (filters.tzOffsetMin !== undefined) params = params.set('tzOffsetMin', filters.tzOffsetMin);
     if (filters.page) params = params.set('page', filters.page);
     if (filters.limit) params = params.set('limit', filters.limit);
 

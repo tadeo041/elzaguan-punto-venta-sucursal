@@ -24,11 +24,9 @@ export class TipsService {
         const receiver = await this.userRepository.findOne({ where: { id: receivedById } });
         if (!receiver) throw new NotFoundException('Usuario receptor no encontrado');
 
-        // 1. Guardamos la propina
         const newTip = this.tipRepository.create({ ...tipData, receivedBy: receiver });
         const savedTip = await this.tipRepository.save(newTip);
 
-        // 2. Registro en el historial
         const history = this.historyRepository.create({
             tip: savedTip,
             action: ActionType.CREACION,
@@ -46,7 +44,7 @@ export class TipsService {
     }
 
     async findAllWithFilters(filters: FilterTipDto) {
-        const { receivedById, paymentType, startDate, endDate, page = 1, limit = 10 } = filters;
+        const { receivedById, paymentType, startDate, endDate, tzOffsetMin, page = 1, limit = 10 } = filters;
 
         const query = this.tipRepository.createQueryBuilder('tip')
             .leftJoinAndSelect('tip.receivedBy', 'receivedBy');
@@ -54,21 +52,21 @@ export class TipsService {
         if (receivedById) query.andWhere('receivedBy.id = :receivedById', { receivedById });
         if (paymentType) query.andWhere('tip.paymentType = :paymentType', { paymentType });
 
-        // ⚠️ SQLite guarda createdAt como ISO UTC ("2026-11-18T02:00:00.000Z").
-        // Para que el filtro coincida con la fecha LOCAL del usuario,
-        // convertimos el rango local → UTC antes de comparar.
-        const TZ_OFFSET_MIN = -6 * 60; // México (UTC-6). Ajusta si tu zona cambia.
+        const TZ_OFFSET_MIN = tzOffsetMin ?? (-6 * 60);
 
         if (startDate && endDate) {
             const start = this.toUtcIso(startDate, false, TZ_OFFSET_MIN);
-            const end   = this.toUtcIso(endDate,   true,  TZ_OFFSET_MIN);
-            query.andWhere('tip.createdAt BETWEEN :start AND :end', { start, end });
+            const end = this.toUtcIso(endDate, true, TZ_OFFSET_MIN);
+            query.andWhere(
+                'DATETIME(tip.createdAt) BETWEEN DATETIME(:start) AND DATETIME(:end)',
+                { start, end }
+            );
         } else if (startDate) {
             const start = this.toUtcIso(startDate, false, TZ_OFFSET_MIN);
-            query.andWhere('tip.createdAt >= :start', { start });
+            query.andWhere('DATETIME(tip.createdAt) >= DATETIME(:start)', { start });
         } else if (endDate) {
             const end = this.toUtcIso(endDate, true, TZ_OFFSET_MIN);
-            query.andWhere('tip.createdAt <= :end', { end });
+            query.andWhere('DATETIME(tip.createdAt) <= DATETIME(:end)', { end });
         }
 
         const summaryQuery = query.clone();
@@ -101,33 +99,20 @@ export class TipsService {
         };
     }
 
-    /**
-     * Convierte una fecha local "YYYY-MM-DD" al ISO UTC correspondiente.
-     *
-     * @param dateStr    Fecha local en formato "YYYY-MM-DD".
-     * @param endOfDay   Si es `true`, usa 23:59:59.999 (fin del día);
-     *                   si es `false`, usa 00:00:00.000 (inicio del día).
-     * @param offsetMin  Offset de la zona horaria del usuario en minutos
-     *                   (ej. México UTC-6 → -360).
-     * @returns          String ISO UTC ("2026-11-18T06:00:00.000Z") que
-     *                   SQLite compara lexicográficamente sin problema.
-     */
     private toUtcIso(
         dateStr: string,
         endOfDay: boolean,
         offsetMin: number = -6 * 60,
     ): string {
         const [y, m, d] = dateStr.split('-').map(Number);
-        const h  = endOfDay ? 23 : 0;
+        const h = endOfDay ? 23 : 0;
         const mi = endOfDay ? 59 : 0;
-        const s  = endOfDay ? 59 : 0;
+        const s = endOfDay ? 59 : 0;
         const ms = endOfDay ? 999 : 0;
 
-        // Construimos la fecha como si fuera UTC, luego le restamos el offset
-        // del usuario para obtener el instante UTC real.
         const localAsUtc = Date.UTC(y, m - 1, d, h, mi, s, ms);
         const utc = new Date(localAsUtc - offsetMin * 60 * 1000);
-        return utc.toISOString(); // "2026-11-18T06:00:00.000Z"
+        return utc.toISOString();
     }
 
     async getTipDetails(id: number) {
@@ -166,7 +151,6 @@ export class TipsService {
         });
         if (!tip) throw new NotFoundException('Propina no encontrada');
 
-        // Cambio de receptor
         let nuevoReceptor = tip.receivedBy;
         if (updateTipDto.receivedById && updateTipDto.receivedById !== tip.receivedBy?.id) {
             const receiver = await this.userRepository.findOne({ where: { id: updateTipDto.receivedById } });
@@ -174,7 +158,6 @@ export class TipsService {
             nuevoReceptor = receiver;
         }
 
-        // Historial: monto
         if (updateTipDto.amount !== undefined && Number(updateTipDto.amount) !== Number(tip.amount)) {
             await this.historyRepository.save({
                 tip,
@@ -185,7 +168,6 @@ export class TipsService {
             });
         }
 
-        // Historial: receptor
         if (updateTipDto.receivedById && updateTipDto.receivedById !== tip.receivedBy?.id) {
             await this.historyRepository.save({
                 tip,
@@ -196,7 +178,6 @@ export class TipsService {
             });
         }
 
-        // Historial: mesa
         if (updateTipDto.tableNumber !== undefined && Number(updateTipDto.tableNumber) !== Number(tip.tableNumber)) {
             await this.historyRepository.save({
                 tip,
@@ -207,7 +188,6 @@ export class TipsService {
             });
         }
 
-        // Historial: tipo de pago
         if (updateTipDto.paymentType !== undefined && Number(updateTipDto.paymentType) !== Number(tip.paymentType)) {
             await this.historyRepository.save({
                 tip,
