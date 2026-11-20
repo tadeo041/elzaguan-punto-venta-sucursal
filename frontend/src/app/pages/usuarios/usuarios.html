@@ -1,0 +1,315 @@
+<div class="animate-page-enter flex flex-col gap-6 w-full">
+
+    <!-- Encabezado -->
+    <div class="flex flex-col gap-6 bg-bg-white rounded-2xl border border-border-general p-5">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-header-bg-icon text-header-icon rounded-xl flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                        stroke="currentColor" class="size-7">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-heading tracking-tight">Gestión de usuarios</h1>
+                    <p class="text-body mt-1 text-base">
+                        Administra los usuarios del sistema y sus roles.
+                    </p>
+                </div>
+            </div>
+            <button (click)="abrirModalCrear()"
+                class="px-4 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-semibold rounded-lg transition-colors cursor-pointer">
+                Crear usuario
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-wrap items-end gap-3">
+
+            <!-- Filtro: Rol -->
+            <div class="flex flex-col gap-1.5 w-[250px]">
+                <label class="text-sm font-medium text-input-text">Rol</label>
+                <div class="relative">
+                    <select [(ngModel)]="filtros.role" (focus)="rolAbierto = true" (blur)="rolAbierto = false"
+                        class="peer w-full appearance-none pl-3 pr-10 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text font-normal focus:outline-none focus:border-input-focus-border focus:ring-2 focus:ring-input-focus-ring transition-all cursor-pointer">
+                        <option value="">Todos los roles</option>
+                        <option value="gerente">Gerente</option>
+                        <option value="cajero">Cajero</option>
+                        <option value="mesero">Mesero</option>
+                        <option value="cocinero">Cocinero</option>
+                    </select>
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400 transition-all duration-200
+                       peer-focus:text-input-focus-border peer-focus:translate-y-[-1px]">
+                        @if (rolAbierto) {
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd"
+                                d="M9.47 6.47a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 1 1-1.06 1.06L10 8.06l-3.72 3.72a.75.75 0 0 1-1.06-1.06l4.25-4.25Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd"
+                                d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <!-- Filtro: Estado -->
+            <div class="flex flex-col gap-1.5 w-[250px]">
+                <label class="text-sm font-medium text-input-text">Estado</label>
+                <div class="relative">
+                    <select [(ngModel)]="filtros.isActive" (focus)="estadoAbierto = true" (blur)="estadoAbierto = false"
+                        class="peer w-full appearance-none pl-3 pr-10 py-2.5 bg-input-bg border border-input-border rounded-lg text-input-text font-normal focus:outline-none focus:border-input-focus-border focus:ring-2 focus:ring-input-focus-ring transition-all cursor-pointer">
+                        <option value="">Todos los estados</option>
+                        <option value="true">Activos</option>
+                        <option value="false">Inactivos</option>
+                    </select>
+                    <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400 transition-all duration-200
+                       peer-focus:text-input-focus-border peer-focus:translate-y-[-1px]">
+                        @if (estadoAbierto) {
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd"
+                                d="M9.47 6.47a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 1 1-1.06 1.06L10 8.06l-3.72 3.72a.75.75 0 0 1-1.06-1.06l4.25-4.25Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        } @else {
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                            <path fill-rule="evenodd"
+                                d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        }
+                    </span>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-2">
+                <button (click)="aplicarFiltros()"
+                    class="px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">
+                    Buscar
+                </button>
+                <button (click)="limpiarFiltros()"
+                    class="px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">
+                    Limpiar
+                </button>
+            </div>
+        </div>
+
+        @if (textoFiltrosActivos !== '') {
+            <div class="px-1 text-sm font-medium text-slate-500">
+                Filtros aplicados: <span class="font-normal">{{ textoFiltrosActivos }}</span>
+            </div>
+        }
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-bg-white border border-border-general w-full rounded-2xl p-2.5">
+        <div class="bg-bg-white rounded-xl border border-table-border overflow-hidden w-full flex flex-col h-auto">
+
+            <!-- Skeleton -->
+            @if (estadoVista === 'skeleton') {
+                <div class="flex flex-col w-full">
+                    <div class="shrink-0">
+                        <table class="custom-table w-full table-fixed">
+                            <thead class="bg-gray-50 border-b border-neutral-200">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[80px]">ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[240px]">NOMBRE</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider w-[180px]">USUARIO</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[140px]">ROL</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[120px]">ESTADO</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider w-[160px]">ACCIONES</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="overflow-hidden flex-1">
+                        <table class="custom-table w-full table-fixed">
+                            <tbody class="divide-y divide-neutral-200">
+                                @for (item of [1,2,3,4,5,6,7]; track item) {
+                                <tr [class.bg-gray-50]="item % 2 === 0">
+                                    <td class="px-6 py-4 w-[80px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-8"></div></td>
+                                    <td class="px-6 py-4 w-[240px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-40"></div></td>
+                                    <td class="px-6 py-4 w-[180px]"><div class="h-4 bg-gray-200 rounded-md animate-pulse w-24"></div></td>
+                                    <td class="px-6 py-4 text-center w-[140px]"><div class="h-6 bg-gray-200 rounded-md animate-pulse w-20 mx-auto"></div></td>
+                                    <td class="px-6 py-4 text-center w-[120px]"><div class="h-6 bg-gray-200 rounded-md animate-pulse w-16 mx-auto"></div></td>
+                                    <td class="px-6 py-4 w-[160px]">
+                                        <div class="flex items-center justify-center gap-2">
+                                            <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                                            <div class="h-8 w-8 bg-gray-200 rounded-lg animate-pulse"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <!-- Empty -->
+            @if (estadoVista === 'empty') {
+                <div class="flex-1 flex flex-col items-center justify-center p-12 text-center bg-white w-full">
+                    <div class="w-16 h-16 bg-empty-bg rounded-full flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-8 text-empty-icon">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                        </svg>
+                    </div>
+                    <span class="text-xl font-semibold text-empty-title mb-2">No hay usuarios</span>
+                    <span class="text-base font-normal text-empty-text max-w-md mx-auto mb-6">
+                        No se encontraron usuarios con los filtros seleccionados. Intenta cambiar el rol o el estado.
+                    </span>
+                    <button (click)="limpiarFiltros()"
+                        class="px-4 py-2.5 bg-btn-lim-filtro-bg border border-border-general text-btn-lim-filtro-text font-medium rounded-lg hover:bg-btn-lim-filtro-hover transition-colors cursor-pointer">
+                        Limpiar filtros
+                    </button>
+                </div>
+            }
+
+            <!-- Data -->
+            @if (estadoVista === 'data') {
+                <div class="flex flex-col w-full">
+                    <div class="shrink-0">
+                        <table class="custom-table w-full table-fixed">
+                            <thead class="bg-table-header-bg border-b border-table-border">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-table-header-text uppercase tracking-wider w-[80px]">ID</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-table-header-text uppercase tracking-wider w-[240px]">NOMBRE</th>
+                                    <th class="px-6 py-4 text-left text-xs font-semibold text-table-header-text uppercase tracking-wider w-[180px]">USUARIO</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-table-header-text uppercase tracking-wider w-[140px]">ROL</th>
+                                    <th class="px-6 py-4 text-center text-xs font-semibold text-table-header-text uppercase tracking-wider w-[120px]">ESTADO</th>
+                                    <th class="px-6 py-4 text-right text-xs font-semibold text-table-header-text uppercase tracking-wider w-[160px]">ACCIONES</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+
+                    <div class="overflow-auto flex-1">
+                        <table class="custom-table w-full table-fixed">
+                            <tbody class="divide-y divide-neutral-200">
+                                @for (usuario of usuariosPagina; track usuario.id; let odd = $odd) {
+                                <tr [class.bg-gray-50]="odd" class="hover:bg-table-row-hover transition-colors">
+                                    <td class="px-6 py-4 text-sm font-medium text-table-text-impor w-[80px]">{{ usuario.id }}</td>
+                                    <td class="px-6 py-4 text-sm text-table-text w-[240px] truncate" [title]="usuario.name">{{ usuario.name }}</td>
+                                    <td class="px-6 py-4 text-sm text-table-text w-[180px]">{{ usuario.username }}</td>
+                                    <td class="px-6 py-4 text-center w-[140px]">
+                                        <span class="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-bold" [ngClass]="rolColor(usuario.role)">
+                                            {{ rolLabel(usuario.role) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center w-[120px]">
+                                        @if (usuario.isActive) {
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-green-100 text-green-700">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                                Activo
+                                            </span>
+                                        } @else {
+                                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold bg-red-100 text-red-700">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                                                Inactivo
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="px-6 py-4 w-[160px]">
+                                        <div class="flex items-center justify-end gap-2 text-table-text">
+                                            <button (click)="abrirModalEditar(usuario)"
+                                                class="p-2 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                title="Editar">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                    stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                                </svg>
+                                            </button>
+                                            <button (click)="abrirModalEstado(usuario)"
+                                                class="p-2 rounded-lg transition-colors"
+                                                [ngClass]="usuario.isActive
+                                                    ? 'hover:text-red-600 hover:bg-red-50'
+                                                    : 'hover:text-green-600 hover:bg-green-50'"
+                                                [title]="usuario.isActive ? 'Desactivar' : 'Activar'">
+                                                @if (usuario.isActive) {
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                        stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                } @else {
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                        stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                }
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer con paginación -->
+                    <div class="table-footer shrink-0 px-6 py-4 border-t border-table-border bg-table-footer-bg flex items-center justify-between mt-auto">
+                        <span class="text-sm text-gray-600">
+                            Mostrando {{ ((currentPage - 1) * pageSize) + 1 }}–{{ Math.min(currentPage * pageSize, totalRecords) }} de {{ totalRecords }} resultados
+                        </span>
+                        <div class="flex items-center gap-6">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm text-gray-600">Filas por página:</span>
+                                <select (change)="cambiarTamanoPagina($event)" [value]="pageSize"
+                                    class="px-1.5 py-1 text-sm border border-neutral-200 rounded-md bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none cursor-pointer">
+                                    <option value="7">7</option>
+                                    <option value="15">15</option>
+                                    <option value="30">30</option>
+                                </select>
+                            </div>
+                            <div class="navegacion-paginacion flex items-center gap-3">
+                                <button (click)="cambiarPaginaAnterior()" [disabled]="currentPage === 1"
+                                    class="p-1 bg-white border border-neutral-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Página anterior">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                        stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                                <span class="indicador-paginacion text-sm font-medium text-gray-700">{{ currentPage }} / {{ totalPages }}</span>
+                                <button (click)="cambiarPaginaSiguiente()" [disabled]="currentPage === totalPages"
+                                    class="p-1 bg-white border border-neutral-200 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    title="Página siguiente">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                        stroke="currentColor" class="size-4">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (modalAbierto) {
+    <app-modal-usuario
+        [usuarioAEditar]="usuarioAEditar"
+        (cerrar)="cerrarModal()"
+        (usuarioGuardado)="onUsuarioGuardado()">
+    </app-modal-usuario>
+}
+
+@if (modalEstadoAbierto && usuarioAEstado) {
+    <app-modal-estado-usuario
+        [usuario]="usuarioAEstado"
+        (cerrar)="cerrarModalEstado()"
+        (estadoCambiado)="onEstadoCambiado()">
+    </app-modal-estado-usuario>
+}

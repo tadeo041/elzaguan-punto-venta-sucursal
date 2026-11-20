@@ -36,7 +36,7 @@ export const routes: Routes = [
                 // Ruta de soporte 
                 { path: 'soporte', loadComponent: () => import('./pages/soporte/soporte').then(m => m.Soporte) },
                 { path: 'configuracion', loadComponent: () => import('./pages/configuracion/configuracion').then(m => m.Configuracion) },
-                                
+                { path: 'usuarios', loadComponent: () => import('./pages/usuarios/usuarios').then(m => m.Usuarios) },                                
                 { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
 
             ]

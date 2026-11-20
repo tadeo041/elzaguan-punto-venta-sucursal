@@ -1,7 +1,22 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams  } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export type UserRole = 'gerente' | 'cajero' | 'mesero' | 'cocinero';
+
+export interface User {
+  id: number;
+  name: string;
+  username: string;
+  role: UserRole;
+  isActive: boolean;
+}
+
+export interface UserFilters {
+  id?: number | string;
+  role?: UserRole | '';
+  isActive?: 'true' | 'false' | '';
+}
 
 @Injectable({
   providedIn: 'root'
@@ -11,18 +26,28 @@ export class UsersService {
 
   constructor(private http: HttpClient) { }
 
-  // Obtener todos los usuarios (el backend los devuelve sin contraseñas)
-  getUsers(filters?: any): Observable<any[]> {
+  getUsers(filters?: UserFilters): Observable<User[]> {
     let params = new HttpParams();
-    if (filters?.id) params = params.set('id', filters.id);
+    if (filters?.id) params = params.set('id', String(filters.id));
     if (filters?.role) params = params.set('role', filters.role);
     if (filters?.isActive) params = params.set('isActive', filters.isActive);
-    
-    return this.http.get<any[]>(this.apiUrl, { params });
+
+    return this.http.get<User[]>(this.apiUrl, { params });
   }
 
-  // Si en el futuro necesitas crear un usuario desde Angular
-  createUser(user: any): Observable<any> {
-    return this.http.post(this.apiUrl, user);
+  getUser(id: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  }
+
+  createUser(user: any): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user);
+  }
+
+  updateUser(id: number, user: any): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}`, user);
+  }
+
+  toggleStatus(id: number): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}/toggle-status`, {});
   }
 }
