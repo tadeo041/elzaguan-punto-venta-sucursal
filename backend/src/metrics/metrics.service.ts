@@ -85,15 +85,16 @@ export class MetricsService {
             .groupBy('tip.paymentType')
             .getRawMany();
 
-        // 5. Top Meseros (Barras Horizontales)
+        // 5. Top Receptores (Barras Horizontales) — antes "Top Meseros"
+        //    Ahora usamos la relación receivedBy (mesero o gerente que recibió la propina)
         const graficoTopMeseros = await this.tipRepository
             .createQueryBuilder('tip')
-            .leftJoin('tip.waiter', 'waiter')
-            .select('waiter.name', 'mesero')
+            .leftJoin('tip.receivedBy', 'receptor')
+            .select('receptor.name', 'mesero')
             .addSelect('SUM(tip.amount)', 'total')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
-            .groupBy('waiter.id')
-            .addGroupBy('waiter.name')
+            .groupBy('receptor.id')
+            .addGroupBy('receptor.name')
             .orderBy('total', 'DESC')
             .limit(5) // Top 5
             .getRawMany();
@@ -129,7 +130,7 @@ export class MetricsService {
                 tarjeta: Number(graficoPastel.find(p => p.tipo === 2)?.total) || 0,
             },
             graficoTopMeseros: graficoTopMeseros.map(item => ({
-                mesero: item.mesero,
+                mesero: item.mesero ?? 'Sin asignar',
                 total: Number(item.total)
             })),
             graficoPropinasPorHora: graficoHoras.map(item => ({

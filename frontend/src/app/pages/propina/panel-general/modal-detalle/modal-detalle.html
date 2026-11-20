@@ -1,8 +1,10 @@
-<!-- Fondo oscuro -->
-<div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-end z-[9999] p-4">
+<!-- Fondo oscuro (clic aquí cierra el modal) -->
+<div (click)="cerrarAlFondo($event)"
+     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-end z-[9999] p-4">
 
-    <!-- Panel Lateral Derecho -->
-    <div class="bg-modal-bg-body w-full max-w-lg h-full rounded-2xl shadow-2xl flex flex-col overflow-hidden relative animate-slide-in-right">
+    <!-- Panel Lateral Derecho con animación de entrada/salida -->
+    <div class="bg-modal-bg-body w-full max-w-lg h-full rounded-2xl shadow-2xl flex flex-col overflow-hidden relative"
+         [ngClass]="visible ? 'animate-slide-in-right' : 'animate-slide-out-right'">
 
         <!-- Encabezado (Fijo) -->
         <div class="flex justify-between items-center p-6 border-b border-border-general bg-modal-bg-encabezado-footer shrink-0">
@@ -43,10 +45,10 @@
                     </span>
                 </div>
 
-                <!-- Mesero -->
+                <!-- Recibió -->
                 <div class="grid grid-cols-2 items-center">
-                    <span class="text-gray-500 font-medium">Mesero</span>
-                    <span class="text-gray-800 font-semibold truncate" [title]="detalle.waiter.name">{{ detalle.waiter.name }}</span>
+                    <span class="text-gray-500 font-medium">Recibió</span>
+                    <span class="text-gray-800 font-semibold truncate" [title]="detalle.receivedBy?.name ?? ''">{{ detalle.receivedBy?.name ?? '—' }}</span>
                 </div>
 
                 <!-- Fecha -->
@@ -74,21 +76,21 @@
 
                 <!-- Contenedor relativo para la línea vertical -->
                 <div class="relative flex flex-col gap-6 ml-3">
-                    
+
                     <!-- Línea vertical gris -->
                     <div class="absolute left-[15px] top-4 bottom-4 w-px bg-gray-200 z-0"></div>
 
                     @for (item of historial; track item.id) {
                         <!-- Contenedor de cada evento -->
                         <div class="relative flex gap-4 z-10">
-                            
+
                             <!-- Ícono en la línea de tiempo -->
                             <div class="w-8 h-8 rounded-full bg-bg-card-history border border-gray-200 flex items-center justify-center shrink-0 mt-1">
                                 @switch (item.action) {
                                     @case ('creacion') {
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                     }
-                                    @case ('cambio_mesero') {
+                                    @case ('cambio_receptor') {
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                                     }
                                     @case ('cambio_monto') {
@@ -109,7 +111,7 @@
                                     <h3 class="font-bold text-gray-800 text-base">
                                         @switch (item.action) {
                                         @case ('creacion') { Inicio de registro }
-                                        @case ('cambio_mesero') { Cambio de mesero }
+                                        @case ('cambio_receptor') { Cambio de receptor }
                                         @case ('cambio_monto') { Cambio de propina }
                                         @case ('cambio_mesa') { Cambio de n° mesa }
                                         @case ('cambio_entrega') { Cambio entrega de propina }
@@ -122,7 +124,7 @@
                                     <p class="text-sm text-gray-600 font-medium">
                                         @switch (item.action) {
                                         @case ('creacion') { Se inició el registro }
-                                        @case ('cambio_mesero') { Detalle de reasignación: }
+                                        @case ('cambio_receptor') { Detalle de reasignación: }
                                         @case ('cambio_monto') { Detalle del cambio de propina: }
                                         @case ('cambio_mesa') { Detalle del cambio de n° mesa: }
                                         @case ('cambio_entrega') { Detalles del cambio de entrega }
@@ -133,24 +135,24 @@
 
                                 @if (item.action !== 'creacion') {
                                     <div class="flex flex-col gap-2 mt-2.5">
-                                        
+
                                         <!-- Fila ANTERIOR -->
                                         <div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center">
                                             <span class="font-bold text-gray-400 text-sm tracking-wide">ANTERIOR</span>
-                                            
-                                            @if (item.action === 'cambio_mesero') {
-                                                <span class="text-sm font-bold text-gray-700">{{ item.previousData.waiterName }}</span>
+
+                                            @if (item.action === 'cambio_receptor') {
+                                                <span class="text-sm font-bold text-gray-700">{{ item.previousData?.receivedByName ?? '—' }}</span>
                                             }
                                             @if (item.action === 'cambio_monto') {
-                                                <span class="text-sm font-bold text-gray-400">${{ item.previousData.amount }}</span>
+                                                <span class="text-sm font-bold text-gray-400">${{ item.previousData?.amount }}</span>
                                             }
                                             @if (item.action === 'cambio_mesa') {
-                                                <span class="text-sm font-bold text-gray-700">Mesa {{ item.previousData.tableNumber }}</span>
+                                                <span class="text-sm font-bold text-gray-700">Mesa {{ item.previousData?.tableNumber }}</span>
                                             }
                                             @if (item.action === 'cambio_entrega') {
-                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold" 
-                                                      [ngClass]="item.previousData.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
-                                                    {{ item.previousData.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
+                                                      [ngClass]="item.previousData?.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                                                    {{ item.previousData?.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
                                                 </span>
                                             }
                                         </div>
@@ -164,47 +166,47 @@
 
                                         <!-- Fila NUEVO -->
                                         <div class="rounded-xl p-3 flex justify-between items-center border" [ngClass]="{
-                                                'border-[#3B82F6] bg-[#EFF6FF]': item.action === 'cambio_mesero' || item.action === 'cambio_mesa',
-                                                'border-green-500 bg-green-50': item.action === 'cambio_monto' && (item.newData.amount > item.previousData.amount),
-                                                'border-yellow-500 bg-yellow-50': item.action === 'cambio_monto' && (item.newData.amount < item.previousData.amount),
+                                                'border-[#3B82F6] bg-[#EFF6FF]': item.action === 'cambio_receptor' || item.action === 'cambio_mesa',
+                                                'border-green-500 bg-green-50': item.action === 'cambio_monto' && (item.newData?.amount > item.previousData?.amount),
+                                                'border-yellow-500 bg-yellow-50': item.action === 'cambio_monto' && (item.newData?.amount < item.previousData?.amount),
                                                 'border-gray-200 bg-white': item.action === 'cambio_entrega'
                                              }">
-                                            
+
                                             <div class="flex items-center gap-2">
                                                 <span class="font-bold text-sm tracking-wide" [ngClass]="{
-                                                        'text-[#3B82F6]': item.action === 'cambio_mesero' || item.action === 'cambio_mesa',
-                                                        'text-green-600': item.action === 'cambio_monto' && (item.newData.amount > item.previousData.amount),
-                                                        'text-yellow-600': item.action === 'cambio_monto' && (item.newData.amount < item.previousData.amount),
+                                                        'text-[#3B82F6]': item.action === 'cambio_receptor' || item.action === 'cambio_mesa',
+                                                        'text-green-600': item.action === 'cambio_monto' && (item.newData?.amount > item.previousData?.amount),
+                                                        'text-yellow-600': item.action === 'cambio_monto' && (item.newData?.amount < item.previousData?.amount),
                                                         'text-gray-400': item.action === 'cambio_entrega'
                                                       }">
                                                     NUEVO
                                                 </span>
-                                                
+
                                                 @if (item.action === 'cambio_monto') {
                                                     <span class="text-xs px-2 py-0.5 rounded font-bold" [ngClass]="{
-                                                            'bg-green-200 text-green-800': item.newData.amount > item.previousData.amount,
-                                                            'bg-yellow-200 text-yellow-800': item.newData.amount < item.previousData.amount
+                                                            'bg-green-200 text-green-800': item.newData?.amount > item.previousData?.amount,
+                                                            'bg-yellow-200 text-yellow-800': item.newData?.amount < item.previousData?.amount
                                                           }">
-                                                        {{ item.newData.amount > item.previousData.amount ? '+' : '-' }} ${{ Math.abs(item.newData.amount - item.previousData.amount) }}
+                                                        {{ item.newData?.amount > item.previousData?.amount ? '+' : '-' }} ${{ Math.abs(item.newData.amount - item.previousData.amount) }}
                                                     </span>
                                                 }
                                             </div>
 
-                                            @if (item.action === 'cambio_mesero') {
-                                                <span class="text-sm font-bold text-[#3B82F6]">{{ item.newData.waiterName }}</span>
+                                            @if (item.action === 'cambio_receptor') {
+                                                <span class="text-sm font-bold text-[#3B82F6]">{{ item.newData?.receivedByName ?? '—' }}</span>
                                             }
                                             @if (item.action === 'cambio_monto') {
-                                                <span class="text-sm font-bold" [ngClass]="item.newData.amount > item.previousData.amount ? 'text-green-600' : 'text-yellow-600'">
-                                                    ${{ item.newData.amount }}
+                                                <span class="text-sm font-bold" [ngClass]="item.newData?.amount > item.previousData?.amount ? 'text-green-600' : 'text-yellow-600'">
+                                                    ${{ item.newData?.amount }}
                                                 </span>
                                             }
                                             @if (item.action === 'cambio_mesa') {
-                                                <span class="text-sm font-bold text-[#3B82F6]">Mesa {{ item.newData.tableNumber }}</span>
+                                                <span class="text-sm font-bold text-[#3B82F6]">Mesa {{ item.newData?.tableNumber }}</span>
                                             }
                                             @if (item.action === 'cambio_entrega') {
-                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold" 
-                                                      [ngClass]="item.newData.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
-                                                    {{ item.newData.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
+                                                      [ngClass]="item.newData?.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                                                    {{ item.newData?.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
                                                 </span>
                                             }
                                         </div>

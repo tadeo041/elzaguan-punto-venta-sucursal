@@ -5,21 +5,25 @@ import { FormsModule } from '@angular/forms';
 import { ModalRegistrar } from './modal-registrar/modal-registrar';
 import { ModalDetalle } from './modal-detalle/modal-detalle';
 // Servicios
-import { TipsService } from '../../../services/tips'; 
-import { UsersService } from '../../../services/users'; 
+import { TipsService } from '../../../services/tips';
+import { UsersService } from '../../../services/users';
 
 @Component({
   selector: 'app-panel-general',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalRegistrar, ModalDetalle], 
+  imports: [CommonModule, FormsModule, ModalRegistrar, ModalDetalle],
   templateUrl: './panel-general.html',
 })
 export class PanelGeneralComponent implements OnInit {
   estadoVista: 'skeleton' | 'data' | 'empty' = 'skeleton';
 
-  // Filtros
+  // Estado para alternar el icono del chevron en los selects
+  meseroAbierto = false;
+  tipoAbierto = false;
+
+  // Filtros (ahora usa receivedById en lugar de waiterId)
   filtros = {
-    waiterId: '',
+    receivedById: '',
     paymentType: '',
     startDate: '',
     endDate: ''
@@ -50,7 +54,7 @@ export class PanelGeneralComponent implements OnInit {
   constructor(
     private tipsService: TipsService,
     private usersService: UsersService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.inicializarFechasPorDefecto();
@@ -61,12 +65,11 @@ export class PanelGeneralComponent implements OnInit {
   // 1. Lógica de Fechas
   inicializarFechasPorDefecto() {
     const hoy = new Date();
-    const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-    const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+    const hoyStr = this.formatearFecha(hoy);
 
-    this.filtros.startDate = this.formatearFecha(primerDia);
-    this.filtros.endDate = this.formatearFecha(ultimoDia);
-    
+    this.filtros.startDate = hoyStr;
+    this.filtros.endDate = hoyStr;
+
     this.actualizarTextoFiltros();
   }
 
@@ -92,8 +95,8 @@ export class PanelGeneralComponent implements OnInit {
       textos.push(`Tipo: ${tipo}`);
     }
 
-    if (this.filtros.waiterId) {
-      const mesero = this.meseros.find(m => m.id == this.filtros.waiterId);
+    if (this.filtros.receivedById) {
+      const mesero = this.meseros.find(m => m.id == this.filtros.receivedById);
       if (mesero) textos.push(`Mesero: ${mesero.name}`);
     }
 
@@ -151,7 +154,16 @@ export class PanelGeneralComponent implements OnInit {
   }
 
   limpiarFiltros() {
-    this.filtros = { waiterId: '', paymentType: '', startDate: '', endDate: '' };
+    const hoy = new Date();
+    const hoyStr = this.formatearFecha(hoy);
+
+    this.filtros = {
+      receivedById: '',
+      paymentType: '',
+      startDate: hoyStr,
+      endDate: hoyStr
+    };
+
     this.aplicarFiltros();
   }
 
@@ -192,12 +204,12 @@ export class PanelGeneralComponent implements OnInit {
     this.propinaAEditar = null;
     this.cargarPropinas(); // Recarga la tabla y los totales
   }
-  
+
   cerrarModal() {
     this.modalAbierto = false;
     this.propinaAEditar = null;
-  } 
-  
+  }
+
   abrirModalDetalle(id: number) {
     this.tipSeleccionadaId = id;
     this.modalDetalleAbierto = true;
@@ -206,5 +218,5 @@ export class PanelGeneralComponent implements OnInit {
   cerrarModalDetalle() {
     this.modalDetalleAbierto = false;
     this.tipSeleccionadaId = null;
-  }  
+  }
 }

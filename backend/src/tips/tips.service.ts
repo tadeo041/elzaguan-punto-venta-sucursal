@@ -54,15 +54,21 @@ export class TipsService {
         if (receivedById) query.andWhere('receivedBy.id = :receivedById', { receivedById });
         if (paymentType) query.andWhere('tip.paymentType = :paymentType', { paymentType });
 
+        // ⚠️ SQLite guarda createdAt como ISO UTC ("2026-11-18T02:00:00.000Z").
+        // Para que el filtro coincida con la fecha LOCAL del usuario,
+        // convertimos el rango local → UTC antes de comparar.
+        const TZ_OFFSET_MIN = -6 * 60; // México (UTC-6). Ajusta si tu zona cambia.
+
         if (startDate && endDate) {
-            query.andWhere('tip.createdAt BETWEEN :startDate AND :endDate', {
-                startDate: `${startDate} 00:00:00`,
-                endDate: `${endDate} 23:59:59`,
-            });
+            const start = this.toUtcIso(startDate, false, TZ_OFFSET_MIN);
+            const end   = this.toUtcIso(endDate,   true,  TZ_OFFSET_MIN);
+            query.andWhere('tip.createdAt BETWEEN :start AND :end', { start, end });
         } else if (startDate) {
-            query.andWhere('tip.createdAt >= :startDate', { startDate: `${startDate} 00:00:00` });
+            const start = this.toUtcIso(startDate, false, TZ_OFFSET_MIN);
+            query.andWhere('tip.createdAt >= :start', { start });
         } else if (endDate) {
-            query.andWhere('tip.createdAt <= :endDate', { endDate: `${endDate} 23:59:59` });
+            const end = this.toUtcIso(endDate, true, TZ_OFFSET_MIN);
+            query.andWhere('tip.createdAt <= :end', { end });
         }
 
         const summaryQuery = query.clone();
@@ -93,6 +99,35 @@ export class TipsService {
                 totalTarjeta: Number(summary.totalTarjeta) || 0,
             },
         };
+    }
+
+    /**
+     * Convierte una fecha local "YYYY-MM-DD" al ISO UTC correspondiente.
+     *
+     * @param dateStr    Fecha local en formato "YYYY-MM-DD".
+     * @param endOfDay   Si es `true`, usa 23:59:59.999 (fin del día);
+     *                   si es `false`, usa 00:00:00.000 (inicio del día).
+     * @param offsetMin  Offset de la zona horaria del usuario en minutos
+     *                   (ej. México UTC-6 → -360).
+     * @returns          String ISO UTC ("2026-11-18T06:00:00.000Z") que
+     *                   SQLite compara lexicográficamente sin problema.
+     */
+    private toUtcIso(
+        dateStr: string,
+        endOfDay: boolean,
+        offsetMin: number = -6 * 60,
+    ): string {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const h  = endOfDay ? 23 : 0;
+        const mi = endOfDay ? 59 : 0;
+        const s  = endOfDay ? 59 : 0;
+        const ms = endOfDay ? 999 : 0;
+
+        // Construimos la fecha como si fuera UTC, luego le restamos el offset
+        // del usuario para obtener el instante UTC real.
+        const localAsUtc = Date.UTC(y, m - 1, d, h, mi, s, ms);
+        const utc = new Date(localAsUtc - offsetMin * 60 * 1000);
+        return utc.toISOString(); // "2026-11-18T06:00:00.000Z"
     }
 
     async getTipDetails(id: number) {

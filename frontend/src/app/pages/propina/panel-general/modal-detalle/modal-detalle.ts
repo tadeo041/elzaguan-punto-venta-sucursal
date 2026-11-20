@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TipsService } from '../../../../services/tips'
+import { TipsService } from '../../../../services/tips';
 
 @Component({
   selector: 'app-modal-detalle',
@@ -15,7 +15,10 @@ export class ModalDetalle implements OnInit {
   detalle: any = null;
   historial: any[] = [];
   loading = true;
-  visible = false; 
+
+  /** Controla la animación de entrada/salida del panel lateral */
+  visible = true; // arranca visible para disparar la animación de entrada
+
   Math = Math;
 
   constructor(private tipsService: TipsService) {}
@@ -30,7 +33,7 @@ export class ModalDetalle implements OnInit {
         this.detalle = res.tip;
         // Ordenamos para que el más reciente quede arriba
         this.historial = res.history.sort((a: any, b: any) => {
-            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         });
         this.loading = false;
       },
@@ -39,6 +42,13 @@ export class ModalDetalle implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /** Cierra el modal solo si el clic fue directamente en el fondo oscuro */
+  cerrarAlFondo(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.cerrarModal();
+    }
   }
 
   cerrarModal() {
