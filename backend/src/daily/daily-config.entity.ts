@@ -13,10 +13,10 @@ export class DailyConfig {
     @Column({ type: 'integer', default: 1 })
     gerenteCount!: number;
 
-    @Column({ type: 'integer', default: 0 })
+    @Column({ type: 'integer', default: 2 })
     meseroCount!: number;
 
-    @Column({ type: 'integer', default: 0 })
+    @Column({ type: 'integer', default: 2 })
     cocinaCount!: number;
 
     // Retardos por área ese día

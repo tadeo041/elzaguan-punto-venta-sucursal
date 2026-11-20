@@ -53,8 +53,8 @@ export class DailyService {
             config = this.dailyRepo.create({
                 date,
                 gerenteCount: 1,
-                meseroCount: 0,
-                cocinaCount: 0,
+                meseroCount: 2,
+                cocinaCount: 2,
                 gerenteRetardos: 0,
                 meseroRetardos: 0,
                 cocinaRetardos: 0,

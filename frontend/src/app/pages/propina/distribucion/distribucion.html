@@ -1,6 +1,6 @@
 <div class="flex flex-col gap-6 w-full">
 
-    <!-- Encabezado con filtros -->
+    <!-- Encabezado -->
     <div class="bg-bg-white rounded-2xl border border-border-general p-5 flex flex-col">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="flex items-center gap-4">
@@ -15,7 +15,9 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold text-heading tracking-tight">Distribución de las propinas del día de hoy</h1>
-                    <p class="text-body mt-1 text-base">Distribución de las propinas de la manera facil.</p>
+                    <p class="text-body mt-1 text-base">
+                        Divide las propinas del día entre gerente, meseros y cocina de forma clara y automática.
+                    </p>
                 </div>
             </div>
 
@@ -25,43 +27,65 @@
                     <input type="date" [(ngModel)]="fecha" (change)="cargarDia()"
                         class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-primary outline-none">
                 </div>
-                <button (click)="toggleHistorial()"
-                    class="px-4 py-2.5 bg-btn-secondary border border-btn-secondary-border text-btn-secondary-text font-semibold rounded-lg transition-colors cursor-pointer">
-                    {{ mostrarHistorial ? 'Ocultar historial' : 'Ver historial' }}
-                </button>
             </div>
         </div>
     </div>
 
-    <!-- Mensaje de error -->
+    <!-- Mensajes -->
     @if (errorMessage) {
         <div class="bg-red-50 border border-red-200 text-red-700 text-sm font-semibold p-3 rounded-lg">
             {{ errorMessage }}
         </div>
     }
+    @if (exitoMessage) {
+        <div class="bg-green-50 border border-green-200 text-green-700 text-sm font-semibold p-3 rounded-lg">
+            {{ exitoMessage }}
+        </div>
+    }
 
-    <!-- Historial (panel colapsable) -->
-    @if (mostrarHistorial) {
-        <div class="bg-bg-white rounded-2xl border border-border-general p-5">
-            <h2 class="text-lg font-bold text-subtitulo mb-4">Días confirmados (mes actual)</h2>
-            @if (historial.length === 0) {
-                <p class="text-sm text-muted">No hay días confirmados este mes.</p>
-            } @else {
-                <div class="flex flex-col gap-2">
-                    @for (dia of historial; track dia.id) {
-                        <button (click)="seleccionarDia(dia)"
-                            class="flex justify-between items-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors text-left">
-                            <div class="flex flex-col">
-                                <span class="font-semibold text-heading">{{ dia.date }}</span>
-                                <span class="text-xs text-muted">
-                                    {{ dia.gerenteCount }} ger · {{ dia.meseroCount }} mes · {{ dia.cocinaCount }} coc
-                                </span>
-                            </div>
-                            <span class="font-bold text-green-600">${{ dia.totalTips | number:'1.2-2' }}</span>
-                        </button>
-                    }
+    <!-- Nota: ¿Cómo se calcula? (azul) -->
+    @if (!loading && config && preview) {
+        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+            <div class="flex items-start gap-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                    stroke="currentColor" class="size-5 text-blue-600 shrink-0 mt-0.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0Zm-9-3.75h.008v.008H12V8.25Z" />
+                </svg>
+                <div class="text-sm text-blue-900 space-y-2">
+                    <p class="font-bold">¿Cómo se calcula?</p>
+
+                    <div class="flex gap-2">
+                        <span class="font-bold shrink-0">1.</span>
+                        <span>
+                            <strong>Base igualitaria:</strong>
+                            ${{ preview.totalTips | number:'1.2-2' }} ÷
+                            {{ preview.totalPersonas }} personas =
+                            <strong>${{ preview.basePorPersona | number:'1.2-2' }}</strong> por persona.
+                        </span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <span class="font-bold shrink-0">2.</span>
+                        <span>
+                            <strong>Regla estructural:</strong>
+                            Cocina aporta el 20% de su bolsa a Meseros
+                            (<strong>${{ preview.reglaEstructural.aporteCocinaAMeseros | number:'1.2-2' }}</strong>).
+                        </span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <span class="font-bold shrink-0">3.</span>
+                        <span>
+                            <strong>Retardos:</strong>
+                            cada persona que llegó tarde pierde el 20% de su parte.
+                            Ese monto se reparte entre sus compañeros puntuales del
+                            mismo departamento. Si todos llegaron tarde, el monto pasa
+                            a los otros departamentos.
+                        </span>
+                    </div>
                 </div>
-            }
+            </div>
         </div>
     }
 
@@ -75,82 +99,29 @@
     <!-- Panel del día -->
     @if (!loading && config) {
 
-        <!-- Confirmado -->
-        @if (config.confirmed) {
-            <div class="bg-green-50 border border-green-200 text-green-800 rounded-2xl p-4 text-sm font-semibold">
-                Día confirmado ✅ — El reparto quedó congelado el
-                {{ config.updatedAt | date:'short' }}. Ya no se puede modificar.
-            </div>
-        }
-
-        <!-- Configuración de cantidades y retardos -->
-        <div class="bg-bg-white rounded-2xl border border-border-general p-6">
-            <h2 class="text-lg font-bold text-subtitulo mb-4">Cantidades y retardos del día</h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Gerente -->
-                <div class="border border-border-general rounded-xl p-4">
-                    <h3 class="font-bold text-heading mb-3">Gerente</h3>
-                    <label class="text-sm text-gray-600 block mb-1">Personas</label>
-                    <input type="number" min="0" [(ngModel)]="config.gerenteCount"
-                        [disabled]="config.confirmed"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3">
-                    <label class="text-sm text-gray-600 block mb-1">Retardos</label>
-                    <input type="number" min="0" [(ngModel)]="config.gerenteRetardos"
-                        [disabled]="config.confirmed"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                </div>
-
-                <!-- Meseros -->
-                <div class="border border-border-general rounded-xl p-4">
-                    <h3 class="font-bold text-heading mb-3">Meseros</h3>
-                    <label class="text-sm text-gray-600 block mb-1">Personas</label>
-                    <input type="number" min="0" [(ngModel)]="config.meseroCount"
-                        [disabled]="config.confirmed"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3">
-                    <label class="text-sm text-gray-600 block mb-1">Retardos</label>
-                    <input type="number" min="0" [(ngModel)]="config.meseroRetardos"
-                        [disabled]="config.confirmed"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                </div>
-
-                <!-- Cocina -->
-                <div class="border border-border-general rounded-xl p-4">
-                    <h3 class="font-bold text-heading mb-3">Cocina</h3>
-                    <label class="text-sm text-gray-600 block mb-1">Personas</label>
-                    <input type="number" min="0" [(ngModel)]="config.cocinaCount"
-                        [disabled]="config.confirmed"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg mb-3">
-                    <label class="text-sm text-gray-600 block mb-1">Retardos</label>
-                    <input type="number" min="0" [(ngModel)]="config.cocinaRetardos"
-                        [disabled]="config.confirmed"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-lg">
-                </div>
-            </div>
-
-            @if (!config.confirmed) {
-                <div class="flex justify-end gap-3 mt-6">
-                    <button (click)="guardarCambios()" [disabled]="!puedeGuardar"
-                        class="px-6 py-2.5 bg-btn-secondary border border-btn-secondary-border text-btn-secondary-text font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50">
-                        {{ guardando ? 'Guardando…' : 'Guardar cambios' }}
-                    </button>
-                    <button (click)="confirmarDia()" [disabled]="!puedeConfirmar"
-                        class="px-6 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-semibold rounded-lg transition-colors cursor-pointer disabled:opacity-50">
-                        {{ confirmando ? 'Confirmando…' : 'Confirmar día' }}
-                    </button>
-                </div>
-            }
-        </div>
-
-        <!-- Vista previa del reparto -->
         @if (preview) {
             <div class="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6 items-start">
 
-                <!-- Dona -->
-                <div class="bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col gap-6">
+                <!-- Dona / Balance del reparto -->
+                <div class="bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col gap-6 h-full">
                     <h2 class="text-lg font-bold text-subtitulo">Balance del reparto</h2>
 
-                    @if (preview.totalPersonas === 0) {
+                    @if (totalTips === 0) {
+                        <!-- Empty state (mismo estilo que panel-general) -->
+                        <div class="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white w-full">
+                            <div class="w-16 h-16 bg-empty-bg rounded-full flex items-center justify-center mb-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-8 text-empty-icon">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                                </svg>
+                            </div>
+                            <span class="text-xl font-semibold text-gray-700 mb-2">Sin propinas registradas</span>
+                            <span class="text-base font-normal text-gray-500 max-w-md mx-auto mb-6">
+                                No hay propinas registradas para este día. Registra una propina para ver el balance del reparto.
+                            </span>
+                        </div>
+                    } @else if (preview.totalPersonas === 0) {
                         <p class="text-sm text-muted text-center py-8">
                             Sin personas configuradas. Agrega al menos una persona en algún área.
                         </p>
@@ -164,6 +135,7 @@
                             </div>
                         </div>
 
+                        <!-- Resumen por área bajo la dona -->
                         <div class="flex flex-col gap-2 text-sm">
                             @for (area of areas; track area.name; let i = $index) {
                                 <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50">
@@ -175,41 +147,6 @@
                                     <span class="font-bold">${{ area.bolsaFinal | number:'1.2-2' }}</span>
                                 </div>
                             }
-                        </div>
-
-                        <!-- Fórmula del reparto -->
-                        <div class="text-xs text-gray-600 border-t border-gray-100 pt-4 space-y-2">
-                            <p class="font-semibold text-gray-700">¿Cómo se calcula?</p>
-
-                            <div class="flex gap-2">
-                                <span class="font-bold text-gray-700 shrink-0">1.</span>
-                                <span>
-                                    <strong>Base igualitaria:</strong>
-                                    ${{ preview.totalTips | number:'1.2-2' }} ÷
-                                    {{ preview.totalPersonas }} personas =
-                                    <strong>${{ preview.basePorPersona | number:'1.2-2' }}</strong> por persona.
-                                </span>
-                            </div>
-
-                            <div class="flex gap-2">
-                                <span class="font-bold text-gray-700 shrink-0">2.</span>
-                                <span>
-                                    <strong>Regla estructural:</strong>
-                                    Cocina aporta el 20% de su bolsa a Meseros
-                                    (<strong>${{ preview.reglaEstructural.aporteCocinaAMeseros | number:'1.2-2' }}</strong>).
-                                </span>
-                            </div>
-
-                            <div class="flex gap-2">
-                                <span class="font-bold text-gray-700 shrink-0">3.</span>
-                                <span>
-                                    <strong>Retardos:</strong>
-                                    cada persona que llegó tarde pierde el 20% de su parte.
-                                    Ese monto se reparte entre sus compañeros puntuales del
-                                    mismo departamento. Si todos llegaron tarde, el monto pasa
-                                    a los otros departamentos.
-                                </span>
-                            </div>
                         </div>
                     }
                 </div>
@@ -223,25 +160,88 @@
                     } @else {
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             @for (area of areas; track area.name; let i = $index) {
-                                <div class="border border-border-general rounded-xl p-5">
-                                    <div class="flex items-center gap-3 mb-4">
-                                        <div class="w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 p-2"
-                                            [style.background-color]="obtenerColorFondo(i)">
-                                            <div [innerHTML]="obtenerIconoConColor(iconoDeArea(area.name), obtenerColor(i))"
-                                                class="w-6 h-6"></div>
+                                @let slug = slugDeArea(area.name);
+                                @let enEdicion = editando[slug];
+
+                                <div class="border border-border-general rounded-xl p-5 transition-all"
+                                     [class.ring-2]="enEdicion"
+                                     [style.--tw-ring-color]="enEdicion ? '#F9E18E' : null">
+
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-full flex items-center justify-center border border-gray-200 p-2"
+                                                [style.background-color]="obtenerColorFondo(i)">
+                                                <div [innerHTML]="obtenerIconoConColor(iconoDeArea(area.name), obtenerColor(i))"
+                                                    class="w-6 h-6"></div>
+                                            </div>
+                                            <h3 class="font-bold text-text-h1">{{ area.name }}</h3>
                                         </div>
-                                        <h3 class="font-bold text-text-h1">{{ area.name }}</h3>
+
+                                        @if (!config.confirmed) {
+                                            @if (!enEdicion) {
+                                                <button (click)="activarEdicion(slug)"
+                                                    class="p-2 text-gray-500 hover:text-[#D5720D] hover:bg-amber-50 rounded-lg transition-colors"
+                                                    title="Editar valores">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                        stroke-width="1.5" stroke="currentColor" class="size-4">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+                                                    </svg>
+                                                </button>
+                                            } @else {
+                                                <div class="flex items-center gap-1">
+                                                    <button (click)="cancelarEdicion(slug)"
+                                                        [disabled]="guardando"
+                                                        class="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                                                        title="Cancelar">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                            stroke-width="2" stroke="currentColor" class="size-4">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                    <button (click)="guardarArea(slug)"
+                                                        [disabled]="guardando"
+                                                        class="p-2 text-white bg-[#D5720D] hover:bg-[#B9600A] rounded-lg transition-colors disabled:opacity-50"
+                                                        title="Guardar">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                                            stroke-width="2" stroke="currentColor" class="size-4">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            }
+                                        }
                                     </div>
 
                                     <div class="space-y-2 text-sm">
-                                        <div class="flex justify-between">
+
+                                        <div class="flex justify-between items-center gap-2">
                                             <span class="text-gray-600">Personas</span>
-                                            <span class="font-medium">{{ area.count }}</span>
+                                            @if (enEdicion) {
+                                                @if (slug === 'gerente') {
+                                                    <span class="font-bold text-gray-700">1</span>
+                                                } @else {
+                                                    <input type="number" min="1" step="1"
+                                                        [(ngModel)]="borrador[slug].count"
+                                                        class="w-20 px-2 py-1 text-right border border-gray-300 rounded-md focus:ring-1 focus:ring-[#D5720D] focus:border-[#D5720D] outline-none" />
+                                                }
+                                            } @else {
+                                                <span class="font-medium">{{ area.count }}</span>
+                                            }
                                         </div>
-                                        <div class="flex justify-between">
+
+                                        <div class="flex justify-between items-center gap-2">
                                             <span class="text-gray-600">Retardos</span>
-                                            <span class="font-medium">{{ area.retardos }}</span>
+                                            @if (enEdicion) {
+                                                <input type="number" min="0"
+                                                    [attr.max]="slug === 'gerente' ? 1 : borrador[slug].count"
+                                                    [(ngModel)]="borrador[slug].retardos"
+                                                    class="w-20 px-2 py-1 text-right border border-gray-300 rounded-md focus:ring-1 focus:ring-[#D5720D] focus:border-[#D5720D] outline-none" />
+                                            } @else {
+                                                <span class="font-medium">{{ area.retardos }}</span>
+                                            }
                                         </div>
+
                                         <div class="flex justify-between">
                                             <span class="text-gray-600">Bolsa del área</span>
                                             <span class="font-bold">${{ area.bolsaFinal | number:'1.2-2' }}</span>

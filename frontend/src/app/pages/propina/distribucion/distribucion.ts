@@ -14,6 +14,13 @@ import {
   AreaCalculada,
 } from '../../../services/daily';
 
+type AreaSlug = 'gerente' | 'meseros' | 'cocina';
+
+interface BorradorArea {
+  count: number;
+  retardos: number;
+}
+
 @Component({
   selector: 'app-distribucion',
   standalone: true,
@@ -21,30 +28,32 @@ import {
   templateUrl: './distribucion.html',
 })
 export class Distribucion implements OnInit {
-  // ── Estado de la pantalla ──
   fecha: string = '';
   loading = true;
   guardando = false;
-  confirmando = false;
   errorMessage = '';
+  exitoMessage = '';
 
-  // Datos del día
   config?: DailyConfig;
   preview?: RepartoResultado;
-
-  // Catálogo fijo de áreas (solo para íconos/colores)
   departamentos: Department[] = [];
 
-  // Historial
-  historial: DailyConfig[] = [];
-  mostrarHistorial = false;
+  editando: Record<AreaSlug, boolean> = {
+    gerente: false,
+    meseros: false,
+    cocina: false,
+  };
 
-  // Iconos SVG
+  borrador: Record<AreaSlug, BorradorArea> = {
+    gerente: { count: 1, retardos: 0 },
+    meseros: { count: 2, retardos: 0 },
+    cocina: { count: 2, retardos: 0 },
+  };
+
   private http = inject(HttpClient);
   private sanitizer = inject(DomSanitizer);
   svgIcons: { [key: string]: string } = {};
 
-  // Gráfico
   public doughnutChartData: ChartData<'doughnut'> = {
     labels: [],
     datasets: [{
@@ -74,10 +83,7 @@ export class Distribucion implements OnInit {
     this.cargarIconos();
     this.cargarDepartamentos();
     this.cargarDia();
-    this.cargarHistorial();
   }
-
-  // ── Carga de catálogo e iconos ──
 
   cargarIconos() {
     const iconos = ['cocina', 'gerente', 'mesero'];
@@ -96,16 +102,16 @@ export class Distribucion implements OnInit {
     });
   }
 
-  // ── Carga del día + preview ──
-
   cargarDia() {
     if (!this.fecha) return;
     this.loading = true;
     this.errorMessage = '';
+    this.exitoMessage = '';
 
     this.dailyService.getDay(this.fecha).subscribe({
       next: (config) => {
         this.config = config;
+        this.resetBorradorDesdeConfig();
         this.actualizarPreview();
       },
       error: (err) => {
@@ -129,82 +135,78 @@ export class Distribucion implements OnInit {
     });
   }
 
-  // ── Edición ──
+  resetBorradorDesdeConfig() {
+    if (!this.config) return;
+    this.borrador.gerente = { count: 1, retardos: this.config.gerenteRetardos };
+    this.borrador.meseros = { count: this.config.meseroCount, retardos: this.config.meseroRetardos };
+    this.borrador.cocina  = { count: this.config.cocinaCount,  retardos: this.config.cocinaRetardos };
+  }
 
-  guardarCambios() {
+  activarEdicion(area: AreaSlug) {
+    if (this.config?.confirmed) return;
+    this.resetBorradorDesdeConfig();
+    this.editando[area] = true;
+  }
+
+  cancelarEdicion(area: AreaSlug) {
+    this.editando[area] = false;
+    this.resetBorradorDesdeConfig();
+  }
+
+  guardarArea(area: AreaSlug) {
     if (!this.config || this.config.confirmed) return;
+
+    const b = this.borrador[area];
+
+    if (area === 'gerente') {
+      if (b.retardos < 0 || b.retardos > 1) {
+        this.errorMessage = 'El gerente solo puede tener 0 o 1 retardo.';
+        return;
+      }
+    } else {
+      if (!b.count || b.count < 1) {
+        this.errorMessage = 'Debe haber al menos 1 persona en el área.';
+        return;
+      }
+      if (b.retardos < 0) {
+        this.errorMessage = 'Los retardos no pueden ser negativos.';
+        return;
+      }
+      if (b.retardos > b.count) {
+        this.errorMessage = 'Los retardos no pueden exceder la cantidad de personas.';
+        return;
+      }
+    }
+
     this.guardando = true;
     this.errorMessage = '';
 
     this.dailyService
       .updateDay(this.fecha, {
         date: this.fecha,
-        gerenteCount: this.config.gerenteCount,
-        meseroCount: this.config.meseroCount,
-        cocinaCount: this.config.cocinaCount,
-        gerenteRetardos: this.config.gerenteRetardos,
-        meseroRetardos: this.config.meseroRetardos,
-        cocinaRetardos: this.config.cocinaRetardos,
+        gerenteCount: 1,
+        meseroCount: area === 'meseros' ? b.count : this.config.meseroCount,
+        cocinaCount: area === 'cocina'  ? b.count : this.config.cocinaCount,
+        gerenteRetardos: area === 'gerente' ? b.retardos : this.config.gerenteRetardos,
+        meseroRetardos:  area === 'meseros' ? b.retardos : this.config.meseroRetardos,
+        cocinaRetardos:  area === 'cocina'  ? b.retardos : this.config.cocinaRetardos,
       })
       .subscribe({
         next: (updated) => {
           this.config = updated;
+          this.resetBorradorDesdeConfig();
+          this.editando[area] = false;
           this.guardando = false;
+          this.exitoMessage = 'Cambios guardados correctamente.';
           this.actualizarPreview();
+          setTimeout(() => (this.exitoMessage = ''), 2500);
         },
         error: (err) => {
           this.guardando = false;
-          this.errorMessage = err.error?.message || 'Error al guardar cambios';
+          this.errorMessage = err.error?.message || 'Error al guardar los cambios';
         },
       });
   }
-
-  confirmarDia() {
-    if (!this.config || this.config.confirmed) return;
-    if (!confirm('¿Confirmar el reparto de este día? Ya no podrá modificarse.')) return;
-
-    this.confirmando = true;
-    this.errorMessage = '';
-
-    this.dailyService.confirm(this.fecha).subscribe({
-      next: () => {
-        this.confirmando = false;
-        this.cargarDia();
-        this.cargarHistorial();
-      },
-      error: (err) => {
-        this.confirmando = false;
-        this.errorMessage = err.error?.message || 'Error al confirmar el día';
-      },
-    });
-  }
-
-  // ── Historial ──
-
-  cargarHistorial() {
-    const hoy = new Date();
-    const desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const hasta = hoy.toISOString().split('T')[0];
-
-    this.dailyService.history(desde, hasta).subscribe({
-      next: (dias) => (this.historial = dias),
-      error: () => (this.historial = []),
-    });
-  }
-
-  toggleHistorial() {
-    this.mostrarHistorial = !this.mostrarHistorial;
-  }
-
-  seleccionarDia(dia: DailyConfig) {
-    this.fecha = dia.date;
-    this.mostrarHistorial = false;
-    this.cargarDia();
-  }
-
-  // ── Helpers de UI ──
 
   get totalTips(): number {
     return this.preview?.totalTips ?? 0;
@@ -212,6 +214,19 @@ export class Distribucion implements OnInit {
 
   get areas(): AreaCalculada[] {
     return this.preview?.areas ?? [];
+  }
+
+  areaPorNombre(nombre: string): AreaCalculada | undefined {
+    return this.preview?.areas.find((a) => a.name === nombre);
+  }
+
+  slugDeArea(nombre: string): AreaSlug {
+    switch (nombre) {
+      case 'Gerente': return 'gerente';
+      case 'Meseros': return 'meseros';
+      case 'Cocina':  return 'cocina';
+      default:        return 'meseros';
+    }
   }
 
   private actualizarGrafico() {
@@ -257,14 +272,5 @@ export class Distribucion implements OnInit {
       .replace(/stroke=".*?"/g, `stroke="${color}"`);
     svgString = svgString.replace('<svg ', '<svg class="w-full h-full" ');
     return this.sanitizer.bypassSecurityTrustHtml(svgString);
-  }
-
-  // Validación rápida para deshabilitar botones
-  get puedeGuardar(): boolean {
-    return !!this.config && !this.config.confirmed && !this.guardando;
-  }
-
-  get puedeConfirmar(): boolean {
-    return !!this.config && !this.config.confirmed && !this.confirmando && (this.preview?.totalPersonas ?? 0) > 0;
   }
 }
