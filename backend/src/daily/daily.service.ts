@@ -5,7 +5,7 @@ import { DailyConfig } from './daily-config.entity';
 import { CreateDailyConfigDto } from './create-daily-config.dto';
 import { Tip } from '../tips/tip.entity';
 
-// Reglas de negocio fijas (no configurables) 
+// Reglas de negocio fijas (no configurables)
 const STRUCTURAL_TRANSFER_RATE = 0.20; // Cocina → Meseros: 20% de la bolsa de cocina
 const LATE_PENALTY_RATE = 0.20;        // Cada retardo descuenta 20% de la parte individual
 
@@ -93,20 +93,20 @@ export class DailyService {
     }
 
     // 3. Vista previa del reparto (sin guardar snapshot)
-    async preview(date: string): Promise<RepartoResultado> {
+    async preview(date: string, tzOffsetMin: number = -360): Promise<RepartoResultado> {
         const config = await this.getOrCreate(date);
-        const totalTips = await this.getTotalTipsForDate(date);
+        const totalTips = await this.getTotalTipsForDate(date, tzOffsetMin);
         return this.calculate(config, totalTips);
     }
 
     // 4. Confirmar el día → congela snapshot
-    async confirm(date: string) {
+    async confirm(date: string, tzOffsetMin: number = -360) {
         const config = await this.getOrCreate(date);
         if (config.confirmed) {
             throw new ConflictException('Este día ya fue confirmado.');
         }
 
-        const totalTips = await this.getTotalTipsForDate(date);
+        const totalTips = await this.getTotalTipsForDate(date, tzOffsetMin);
         const result = this.calculate(config, totalTips);
 
         config.totalTips = totalTips;
@@ -139,15 +139,46 @@ export class DailyService {
 
     // ── Helpers ────────────────────────────────────────────
 
-    private async getTotalTipsForDate(date: string): Promise<number> {
-        const start = `${date} 00:00:00`;
-        const end = `${date} 23:59:59`;
+    /**
+     * Suma las propinas del día usando el rango UTC correcto para SQLite.
+     * SQLite guarda createdAt como 'YYYY-MM-DD HH:MM:SS' en UTC (sin zona).
+     */
+    private async getTotalTipsForDate(date: string, tzOffsetMin: number = -360): Promise<number> {
+        const startUtc = this.toSqliteUtc(date, false, tzOffsetMin);
+        const endUtc   = this.toSqliteUtc(date, true,  tzOffsetMin);
+
         const raw = await this.tipRepo
             .createQueryBuilder('tip')
             .select('SUM(tip.amount)', 'total')
-            .where('tip.createdAt BETWEEN :start AND :end', { start, end })
+            .where('tip.createdAt BETWEEN :start AND :end', { start: startUtc, end: endUtc })
             .getRawOne();
         return Number(raw?.total) || 0;
+    }
+
+    /**
+     * Convierte una fecha local (YYYY-MM-DD) al string UTC en formato SQLite:
+     *   'YYYY-MM-DD HH:MM:SS'
+     * - endOfDay = false → inicio del día local (00:00:00)
+     * - endOfDay = true  → fin del día local (23:59:59)
+     * offsetMin: offset de la zona del cliente en minutos (México = -360)
+     */
+    private toSqliteUtc(dateStr: string, endOfDay: boolean, offsetMin: number = -360): string {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const h  = endOfDay ? 23 : 0;
+        const mi = endOfDay ? 59 : 0;
+        const s  = endOfDay ? 59 : 0;
+
+        // Fecha local interpretada como si fuera UTC
+        const localAsUtc = Date.UTC(y, m - 1, d, h, mi, s, 0);
+
+        // Restamos el offset para obtener el UTC real
+        const utc = new Date(localAsUtc - offsetMin * 60 * 1000);
+
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return (
+            `${utc.getUTCFullYear()}-${pad(utc.getUTCMonth() + 1)}-${pad(utc.getUTCDate())} ` +
+            `${pad(utc.getUTCHours())}:${pad(utc.getUTCMinutes())}:${pad(utc.getUTCSeconds())}`
+        );
     }
 
     private calculate(config: DailyConfig, totalTips: number): RepartoResultado {

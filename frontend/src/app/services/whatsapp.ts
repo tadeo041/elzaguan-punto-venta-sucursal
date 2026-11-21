@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -6,8 +7,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class WhatsappService {
-    private apiUrl = '/api/whatsapp';
-
+private apiUrl = `${environment.apiUrl}/whatsapp`;
     constructor(private http: HttpClient) { }
 
     getConversaciones(filters: {

@@ -25,14 +25,18 @@ export class DailyController {
 
     @Get(':date/preview')
     @ApiOperation({ summary: 'Vista previa del reparto del día (no guarda)' })
-    preview(@Param('date') date: string) {
-        return this.dailyService.preview(date);
+    @ApiQuery({ name: 'tzOffsetMin', required: false, example: -360 })
+    preview(@Param('date') date: string, @Query('tzOffsetMin') tz?: string) {
+        const offset = tz != null && !isNaN(Number(tz)) ? Number(tz) : -360;
+        return this.dailyService.preview(date, offset);
     }
 
     @Post(':date/confirm')
     @ApiOperation({ summary: 'Confirmar el día y guardar snapshot histórico (sin body)' })
-    confirm(@Param('date') date: string) {
-        return this.dailyService.confirm(date);
+    @ApiQuery({ name: 'tzOffsetMin', required: false, example: -360 })
+    confirm(@Param('date') date: string, @Query('tzOffsetMin') tz?: string) {
+        const offset = tz != null && !isNaN(Number(tz)) ? Number(tz) : -360;
+        return this.dailyService.confirm(date, offset);
     }
 
     @Get()

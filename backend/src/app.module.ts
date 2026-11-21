@@ -21,14 +21,13 @@ import { DailyModule } from './daily/daily.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { ConfiguracionModule } from './config/configuracion.module';
-import { SeedModule } from './seed/seed.module';
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         TypeOrmModule.forRoot({
             type: 'better-sqlite3',
-            database: 'pos-database.sqlite',
+            database: process.env.DB_PATH || 'pos-database.sqlite',
             entities: [User, Tip, TipHistory, Department, DailyConfig, Conversation, Message, Configuracion],
             synchronize: true,
         }),
@@ -40,7 +39,6 @@ import { SeedModule } from './seed/seed.module';
         DailyModule,
         MetricsModule,
         WhatsappModule,
-        SeedModule,
     ],
     controllers: [AppController],
     providers: [AppService],

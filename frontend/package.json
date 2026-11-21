@@ -3,9 +3,49 @@
   "version": "1.0.0",
   "main": "electron-main.js",
   "scripts": {
-    "ng:serve": "ng serve",
-    "electron:dev": "cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
-    "electron:build": "ng build && electron-builder"
+    "electron:dev": "npm --prefix ../backend run build && cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
+    "rebuild:native": "electron-rebuild -f -w better-sqlite3,bcrypt",
+    "rebuild:backend": "electron-rebuild -f -w better-sqlite3,bcrypt --module-dir ../backend",
+    "electron:build": "npm --prefix ../backend run build && npm run rebuild:backend && npm run rebuild:native && ng build --base-href ./ && electron-builder"},
+  "build": {
+    "appId": "com.elzaguan.pos",
+    "productName": "El Zaguán POS",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron-main.js",
+      "preload.js",
+      "public/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../backend/dist",
+        "to": "backend",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../backend/node_modules",
+        "to": "backend/node_modules",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "mac": {
+      "target": "dmg"
+    }
   },
   "prettier": {
     "printWidth": 100,
@@ -21,6 +61,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/cdk": "^20.2.14",
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
     "@angular/core": "^20.3.0",
@@ -40,6 +81,7 @@
     "@angular/build": "^20.3.3",
     "@angular/cli": "^20.3.3",
     "@angular/compiler-cli": "^20.3.0",
+    "@electron/rebuild": "^4.2.1",
     "@types/jasmine": "~5.1.0",
     "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",

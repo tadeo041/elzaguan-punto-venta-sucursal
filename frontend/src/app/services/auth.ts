@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 
@@ -6,13 +7,12 @@ import { Observable, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  // Usamos la ruta relativa para que el proxy haga el trabajo
-  private apiUrl = '/api/auth'; 
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) { }
 
   login(credentials: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
+    return this.http.post(`${this.apiUrl}/auth/login`, credentials).pipe(   // ← cambio aquí
       tap((response: any) => {
         if (response.access_token) {
           localStorage.setItem('token', response.access_token);

@@ -18,6 +18,12 @@ export class ModalRegistrar implements OnChanges {
 
   esEdicion = false;
 
+  // Límites de validación
+  readonly MESA_MIN = 1;
+  readonly MESA_MAX = 30;
+  readonly PROPINA_MIN = 0.01;
+  readonly PROPINA_MAX = 1000;
+
   nuevaPropina: {
     tableNumber: number | null;
     amount: number | null;
@@ -64,20 +70,105 @@ export class ModalRegistrar implements OnChanges {
     this.exitoMessage = '';
   }
 
+  /** Bloquea teclas no numéricas y signos negativos en el input de N° mesa */
+  bloquearTeclasMesa(event: KeyboardEvent) {
+    const teclasBloqueadas = ['e', 'E', '-', '+', '.', ','];
+    if (teclasBloqueadas.includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  /** Bloquea teclas no numéricas y signos negativos en el input de Propina (permite decimales) */
+  bloquearTeclasPropina(event: KeyboardEvent) {
+    const teclasBloqueadas = ['e', 'E', '-', '+'];
+    if (teclasBloqueadas.includes(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Sanitiza el valor del campo indicado:
+   * - Mesa: entero entre MESA_MIN y MESA_MAX.
+   * - Propina: monto entre PROPINA_MIN y PROPINA_MAX (permite decimales).
+   * Si el valor queda fuera de rango o inválido => lo deja en null.
+   */
+  sanitizarNumeroPositivo(campo: 'tableNumber' | 'amount', permitirDecimales = false) {
+    const valor: unknown = this.nuevaPropina[campo];
+
+    // Vacío o nulo => null
+    if (valor === null || valor === undefined || valor === '') {
+      this.nuevaPropina[campo] = null;
+      return;
+    }
+
+    const num = Number(valor);
+
+    // No es número => null
+    if (isNaN(num)) {
+      this.nuevaPropina[campo] = null;
+      return;
+    }
+
+    if (!permitirDecimales) {
+      // Mesa: entero y dentro de rango
+      if (!Number.isInteger(num) || num < this.MESA_MIN || num > this.MESA_MAX) {
+        this.nuevaPropina[campo] = null;
+        return;
+      }
+      this.nuevaPropina[campo] = num;
+    } else {
+      // Propina: dentro de rango, permite decimales
+      if (num < this.PROPINA_MIN || num > this.PROPINA_MAX) {
+        this.nuevaPropina[campo] = null;
+        return;
+      }
+      this.nuevaPropina[campo] = num;
+    }
+  }
+
   guardar() {
     this.errorMessage = '';
     this.exitoMessage = '';
 
-    if (!this.nuevaPropina.tableNumber || !this.nuevaPropina.amount || !this.nuevaPropina.receivedById) {
-      this.errorMessage = 'Por favor, llena todos los campos obligatorios.';
+    const mesa = Number(this.nuevaPropina.tableNumber);
+    const monto = Number(this.nuevaPropina.amount);
+
+    // Validación: N° mesa entero entre MESA_MIN y MESA_MAX
+    if (
+      this.nuevaPropina.tableNumber === null ||
+      this.nuevaPropina.tableNumber === undefined ||
+      isNaN(mesa) ||
+      !Number.isInteger(mesa) ||
+      mesa < this.MESA_MIN ||
+      mesa > this.MESA_MAX
+    ) {
+      this.errorMessage = `El número de mesa debe ser un entero entre ${this.MESA_MIN} y ${this.MESA_MAX}.`;
+      return;
+    }
+
+    // Validación: Propina monto entre PROPINA_MIN y PROPINA_MAX
+    if (
+      this.nuevaPropina.amount === null ||
+      this.nuevaPropina.amount === undefined ||
+      isNaN(monto) ||
+      monto < this.PROPINA_MIN ||
+      monto > this.PROPINA_MAX
+    ) {
+      this.errorMessage = `La propina debe ser un monto entre ${this.PROPINA_MIN} y ${this.PROPINA_MAX}.`;
+      return;
+    }
+
+    // Validación: trabajador seleccionado
+    if (!this.nuevaPropina.receivedById) {
+      this.errorMessage = 'Por favor, selecciona quién recibió la propina.';
       return;
     }
 
     this.isLoading = true;
 
     const payload = {
-      tableNumber: Number(this.nuevaPropina.tableNumber),
-      amount: Number(this.nuevaPropina.amount),
+      tableNumber: mesa,
+      amount: monto,
       paymentType: Number(this.nuevaPropina.paymentType),
       receivedById: Number(this.nuevaPropina.receivedById),
     };
@@ -89,12 +180,10 @@ export class ModalRegistrar implements OnChanges {
     peticion.subscribe({
       next: () => {
         this.isLoading = false;
-        // Mensaje verde de éxito
         this.exitoMessage = this.esEdicion
           ? '¡Propina actualizada correctamente!'
           : '¡Propina registrada correctamente!';
 
-        // Pequeña espera para que el usuario vea el mensaje verde antes de cerrar
         setTimeout(() => {
           this.propinaGuardada.emit();
           this.cerrarModal();

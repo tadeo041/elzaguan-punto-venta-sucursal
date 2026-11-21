@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -6,8 +7,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root'
 })
 export class ConfiguracionService {
-    private apiUrl = '/api/configuracion';
-
+    private apiUrl = `${environment.apiUrl}/configuracion`;
     constructor(private http: HttpClient) { }
 
     getWhatsappConfig(): Observable<any> {

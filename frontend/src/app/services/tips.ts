@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -6,8 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class TipsService {
-  private apiUrl = '/api/tips';
-
+  private apiUrl = `${environment.apiUrl}/tips`;
   constructor(private http: HttpClient) { }
 
   getTips(filters: any): Observable<any> {

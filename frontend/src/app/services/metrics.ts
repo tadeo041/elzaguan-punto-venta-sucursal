@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -6,8 +7,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class MetricsService {
-  private apiUrl = '/api/metrics';
-
+private apiUrl = `${environment.apiUrl}/metrics`;
   constructor(private http: HttpClient) { }
 
   getMetrics(period: string): Observable<any> {

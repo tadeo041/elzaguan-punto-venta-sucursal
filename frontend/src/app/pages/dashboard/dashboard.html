@@ -1,14 +1,14 @@
-<div class="flex flex-col gap-6 w-full max-w-7xl mx-auto mt-4">
+<div class="flex flex-col gap-6 w-full">
 
-    <!-- Encabezado -->
-    <div class="bg-bg-white rounded-2xl border border-border-general p-6 flex items-center gap-4">
-        <div class="w-16 h-16 bg-header-bg-icon text-header-icon rounded-2xl flex items-center justify-center shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-8">
+    <!-- ENCABEZADO -->
+    <div class="bg-bg-white rounded-2xl border border-border-general p-5 flex items-center gap-4">
+        <div class="w-14 h-14 bg-header-bg-icon text-header-icon rounded-xl flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 16.875h3.375m0 0h3.375m-3.375 0V13.5m0 3.375v3.375M6 10.5h2.25a2.25 2.25 0 0 0 2.25-2.25V6a2.25 2.25 0 0 0-2.25-2.25H6A2.25 2.25 0 0 0 3.75 6v2.25A2.25 2.25 0 0 0 6 10.5Zm0 9.75h2.25A2.25 2.25 0 0 0 10.5 18v-2.25a2.25 2.25 0 0 0-2.25-2.25H6a2.25 2.25 0 0 0-2.25 2.25V18A2.25 2.25 0 0 0 6 20.25Zm9.75-9.75H18a2.25 2.25 0 0 0 2.25-2.25V6A2.25 2.25 0 0 0 18 3.75h-2.25A2.25 2.25 0 0 0 13.5 6v2.25a2.25 2.25 0 0 0 2.25 2.25Z" />
             </svg>
         </div>
         <div>
-            <h1 class="text-2xl font-bold text-heading tracking-tight">Bienvenido a El Zaguán</h1>
+            <h1 class="text-xl font-bold text-heading tracking-tight">Bienvenido a El Zaguán</h1>
             <p class="text-body mt-1 text-base">Selecciona el módulo con el que deseas trabajar hoy.</p>
         </div>
     </div>
@@ -27,18 +27,18 @@
             <p class="text-sm text-text-body">Registra, edita y consulta las propinas del equipo.</p>
         </a>
 
-        <!-- Módulo: WhatsApp -->
-        <a routerLink="/whatsapp/bandeja" class="group bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col items-start hover:border-green-500 hover:shadow-lg transition-all duration-300 cursor-pointer">
-            <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+        <!-- Módulo: WhatsApp (Próximamente) -->
+        <div class="group bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col items-start opacity-60 cursor-not-allowed">
+            <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
                 </svg>
             </div>
-            <h2 class="text-lg font-bold text-heading mb-1 group-hover:text-green-600 transition-colors">WhatsApp</h2>
-            <p class="text-sm text-text-body">Contesta mensajes y gestiona las conversaciones.</p>
-        </a>
+            <h2 class="text-lg font-bold text-heading mb-1">WhatsApp</h2>
+            <p class="text-sm text-text-body">Próximamente...</p>
+        </div>
 
-        <!-- Módulo: Inventario (Ejemplo) -->
+        <!-- Módulo: Inventario (Próximamente) -->
         <div class="group bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col items-start opacity-60 cursor-not-allowed">
             <div class="w-14 h-14 bg-gray-100 text-gray-500 rounded-xl flex items-center justify-center mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
@@ -58,6 +58,28 @@
             </div>
             <h2 class="text-lg font-bold text-heading mb-1 group-hover:text-blue-600 transition-colors">Biblioteca Digital</h2>
             <p class="text-sm text-text-body">Accede a los manuales y documentos de la empresa.</p>
+        </a>
+
+        <!-- Módulo: Usuarios -->
+        <a routerLink="/usuarios" class="group bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col items-start hover:border-violet-500 hover:shadow-lg transition-all duration-300 cursor-pointer">
+            <div class="w-14 h-14 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+                </svg>
+            </div>
+            <h2 class="text-lg font-bold text-heading mb-1 group-hover:text-violet-600 transition-colors">Usuarios</h2>
+            <p class="text-sm text-text-body">Gestiona el personal y los accesos del sistema.</p>
+        </a>
+
+        <!-- Módulo: Soporte -->
+        <a routerLink="/soporte" class="group bg-bg-white rounded-2xl border border-border-general p-6 flex flex-col items-start hover:border-amber-500 hover:shadow-lg transition-all duration-300 cursor-pointer">
+            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-7">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                </svg>
+            </div>
+            <h2 class="text-lg font-bold text-heading mb-1 group-hover:text-amber-600 transition-colors">Soporte</h2>
+            <p class="text-sm text-text-body">Resuelve tus dudas y contacta al equipo de ayuda.</p>
         </a>
 
     </div>

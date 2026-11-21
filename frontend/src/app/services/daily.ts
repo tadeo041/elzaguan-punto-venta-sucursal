@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-// ── Tipos que reflejan la respuesta del backend ──
+// Tipos que reflejan la respuesta del backend
 
 export interface DailyConfig {
     id: number;
@@ -57,8 +58,7 @@ export interface UpdateDailyPayload {
     providedIn: 'root'
 })
 export class DailyService {
-    private apiUrl = '/api/daily';
-
+    private apiUrl = `${environment.apiUrl}/daily`;
     constructor(private http: HttpClient) { }
 
     /** Obtiene (o crea) la configuración del día */
@@ -72,15 +72,24 @@ export class DailyService {
     }
 
     /** Vista previa del reparto (no guarda) */
-    preview(date: string): Observable<RepartoResultado> {
-        return this.http.get<RepartoResultado>(`${this.apiUrl}/${date}/preview`);
+    preview(date: string, tzOffsetMin?: number): Observable<RepartoResultado> {
+        let params = new HttpParams();
+        if (tzOffsetMin != null) {
+            params = params.set('tzOffsetMin', String(tzOffsetMin));
+        }
+        return this.http.get<RepartoResultado>(`${this.apiUrl}/${date}/preview`, { params });
     }
 
     /** Confirma el día y congela el snapshot histórico */
-    confirm(date: string): Observable<{ message: string; config: DailyConfig }> {
+    confirm(date: string, tzOffsetMin?: number): Observable<{ message: string; config: DailyConfig }> {
+        let params = new HttpParams();
+        if (tzOffsetMin != null) {
+            params = params.set('tzOffsetMin', String(tzOffsetMin));
+        }
         return this.http.post<{ message: string; config: DailyConfig }>(
             `${this.apiUrl}/${date}/confirm`,
             {},
+            { params },
         );
     }
 

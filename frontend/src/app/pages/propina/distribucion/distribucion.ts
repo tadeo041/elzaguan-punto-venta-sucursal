@@ -28,6 +28,8 @@ interface BorradorArea {
   templateUrl: './distribucion.html',
 })
 export class Distribucion implements OnInit {
+  readonly MAX_PERSONAS = 5;
+
   fecha: string = '';
   loading = true;
   guardando = false;
@@ -76,13 +78,26 @@ export class Distribucion implements OnInit {
     private dailyService: DailyService,
   ) {}
 
+  /** Offset de la zona horaria del cliente (México → -360) */
+  private get tzOffsetMin(): number {
+    return -new Date().getTimezoneOffset();
+  }
+
   ngOnInit() {
-    const hoy = new Date().toISOString().split('T')[0];
-    this.fecha = hoy;
+    this.fecha = this.fechaLocalISO();
 
     this.cargarIconos();
     this.cargarDepartamentos();
     this.cargarDia();
+  }
+
+  /** Devuelve la fecha de HOY en formato YYYY-MM-DD usando la zona horaria local (no UTC). */
+  private fechaLocalISO(): string {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   cargarIconos() {
@@ -122,7 +137,7 @@ export class Distribucion implements OnInit {
   }
 
   actualizarPreview() {
-    this.dailyService.preview(this.fecha).subscribe({
+    this.dailyService.preview(this.fecha, this.tzOffsetMin).subscribe({
       next: (p) => {
         this.preview = p;
         this.actualizarGrafico();
@@ -153,6 +168,27 @@ export class Distribucion implements OnInit {
     this.resetBorradorDesdeConfig();
   }
 
+  sanitizarCount(area: AreaSlug) {
+    const b = this.borrador[area];
+    let num = Number(b.count);
+
+    if (isNaN(num)) {
+      b.count = 1;
+      return;
+    }
+
+    num = Math.floor(num);
+
+    if (num < 1) num = 1;
+    if (num > this.MAX_PERSONAS) num = this.MAX_PERSONAS;
+
+    b.count = num;
+
+    if (b.retardos > b.count) {
+      b.retardos = b.count;
+    }
+  }
+
   guardarArea(area: AreaSlug) {
     if (!this.config || this.config.confirmed) return;
 
@@ -164,8 +200,8 @@ export class Distribucion implements OnInit {
         return;
       }
     } else {
-      if (!b.count || b.count < 1) {
-        this.errorMessage = 'Debe haber al menos 1 persona en el área.';
+      if (!b.count || b.count < 1 || b.count > this.MAX_PERSONAS) {
+        this.errorMessage = `El área debe tener entre 1 y ${this.MAX_PERSONAS} personas.`;
         return;
       }
       if (b.retardos < 0) {

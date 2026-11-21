@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
@@ -14,8 +15,7 @@ export interface Department {
   providedIn: 'root'
 })
 export class DepartmentsService {
-  private apiUrl = '/api/departments';
-
+private apiUrl = `${environment.apiUrl}/departments`;
   constructor(private http: HttpClient) { }
 
   // Solo lectura: el sistema ya tiene los 3 departamentos fijos

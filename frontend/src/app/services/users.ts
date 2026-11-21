@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type UserRole = 'gerente' | 'cajero' | 'mesero' | 'cocinero';
 
@@ -22,7 +23,7 @@ export interface UserFilters {
   providedIn: 'root'
 })
 export class UsersService {
-  private apiUrl = '/api/users';
+private apiUrl = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) { }
 

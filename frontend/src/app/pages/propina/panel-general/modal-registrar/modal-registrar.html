@@ -171,13 +171,16 @@
                                     d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
                         </div>
-                        <input type="number" [(ngModel)]="nuevaPropina.tableNumber" (input)="errorMessage = ''"
-                            placeholder="0" min="0"
+                        <input type="number" [(ngModel)]="nuevaPropina.tableNumber"
+                            (input)="errorMessage = ''; sanitizarNumeroPositivo('tableNumber', false)"
+                            (keydown)="bloquearTeclasMesa($event)"
+                            placeholder="1" [min]="MESA_MIN" [max]="MESA_MAX" step="1"
                             class="w-full pl-10 pr-4 py-2.5 bg-input-bg border rounded-lg placeholder-input-placeholder focus:outline-none focus:ring-1 transition-all"
                             [ngClass]="errorMessage
                                 ? 'border-red-500 text-red-600 placeholder-red-400 focus:border-red-500 focus:ring-red-300'
                                 : 'border-input-border text-input-text focus:border-input-focus-border focus:ring-input-focus-ring'">
                     </div>
+                    <span class="text-xs text-muted">Entre {{ MESA_MIN }} y {{ MESA_MAX }}</span>
                 </div>
 
                 <!-- Propina (Monto) -->
@@ -193,13 +196,16 @@
                                     d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <input type="number" [(ngModel)]="nuevaPropina.amount" (input)="errorMessage = ''"
-                            placeholder="0.00" min="0"
+                        <input type="number" [(ngModel)]="nuevaPropina.amount"
+                            (input)="errorMessage = ''; sanitizarNumeroPositivo('amount', true)"
+                            (keydown)="bloquearTeclasPropina($event)"
+                            placeholder="0.00" [min]="PROPINA_MIN" [max]="PROPINA_MAX" step="0.01"
                             class="w-full pl-10 pr-4 py-2.5 bg-input-bg border rounded-lg placeholder-input-placeholder focus:outline-none focus:ring-1 transition-all"
                             [ngClass]="errorMessage
                                 ? 'border-red-500 text-red-600 placeholder-red-400 focus:border-red-500 focus:ring-red-300'
                                 : 'border-input-border text-input-text focus:border-input-focus-border focus:ring-input-focus-ring'">
                     </div>
+                    <span class="text-xs text-muted">Máximo {{ PROPINA_MAX }}</span>
                 </div>
             </div>
 
