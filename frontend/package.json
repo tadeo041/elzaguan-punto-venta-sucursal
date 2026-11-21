@@ -6,7 +6,8 @@
     "electron:dev": "npm --prefix ../backend run build && cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
     "rebuild:native": "electron-rebuild -f -w better-sqlite3,bcrypt",
     "rebuild:backend": "electron-rebuild -f -w better-sqlite3,bcrypt --module-dir ../backend",
-    "electron:build": "npm --prefix ../backend run build && npm run rebuild:backend && npm run rebuild:native && ng build --base-href ./ && electron-builder"},
+    "electron:build": "npm --prefix ../backend run build && npm run rebuild:backend && npm run rebuild:native && ng build --base-href ./ && electron-builder"
+  },
   "build": {
     "appId": "com.elzaguan.pos",
     "productName": "El Zaguán POS",
@@ -38,7 +39,6 @@
     "win": {
       "target": "nsis",
       "icon": "public/icon.ico"
-
     },
     "linux": {
       "target": "AppImage"
@@ -69,6 +69,7 @@
     "@angular/platform-browser": "^20.3.0",
     "@angular/router": "^20.3.0",
     "@tailwindcss/postcss": "^4.3.3",
+    "canvas-confetti": "^1.9.4",
     "chart.js": "^4.6.1",
     "ng2-charts": "^9.0.0",
     "postcss": "^8.5.32",
@@ -82,6 +83,7 @@
     "@angular/cli": "^20.3.3",
     "@angular/compiler-cli": "^20.3.0",
     "@electron/rebuild": "^4.2.1",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/jasmine": "~5.1.0",
     "concurrently": "^10.0.5",
     "cross-env": "^10.1.0",

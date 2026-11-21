@@ -1,10 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import confetti from 'canvas-confetti';
 
 import { DepartmentsService, Department } from '../../../services/departments';
 import {
@@ -35,10 +36,14 @@ export class Distribucion implements OnInit {
   guardando = false;
   errorMessage = '';
   exitoMessage = '';
+  ventasDelDia = 12500.00;
 
   config?: DailyConfig;
   preview?: RepartoResultado;
   departamentos: Department[] = [];
+
+  private metaYaCelebrada = false;
+  private cdr = inject(ChangeDetectorRef);
 
   editando: Record<AreaSlug, boolean> = {
     gerente: false,
@@ -76,9 +81,8 @@ export class Distribucion implements OnInit {
   constructor(
     private departmentsService: DepartmentsService,
     private dailyService: DailyService,
-  ) {}
+  ) { }
 
-  /** Offset de la zona horaria del cliente (México → -360) */
   private get tzOffsetMin(): number {
     return -new Date().getTimezoneOffset();
   }
@@ -91,7 +95,6 @@ export class Distribucion implements OnInit {
     this.cargarDia();
   }
 
-  /** Devuelve la fecha de HOY en formato YYYY-MM-DD usando la zona horaria local (no UTC). */
   private fechaLocalISO(): string {
     const d = new Date();
     const year = d.getFullYear();
@@ -122,6 +125,7 @@ export class Distribucion implements OnInit {
     this.loading = true;
     this.errorMessage = '';
     this.exitoMessage = '';
+    this.metaYaCelebrada = false;
 
     this.dailyService.getDay(this.fecha).subscribe({
       next: (config) => {
@@ -142,6 +146,15 @@ export class Distribucion implements OnInit {
         this.preview = p;
         this.actualizarGrafico();
         this.loading = false;
+
+        if (this.metaAlcanzada && !this.metaYaCelebrada) {
+          this.lanzarConfeti();
+          this.metaYaCelebrada = true;
+        } else if (!this.metaAlcanzada) {
+          this.metaYaCelebrada = false;
+        }
+
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.loading = false;
@@ -150,11 +163,48 @@ export class Distribucion implements OnInit {
     });
   }
 
+  private lanzarConfeti() {
+    const duration = 2000;
+    const end = Date.now() + duration;
+
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+      zIndex: 9999,
+      disableForReducedMotion: true,
+    });
+
+    const frame = () => {
+      confetti({
+        particleCount: 5,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0 },
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
+      confetti({
+        particleCount: 5,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1 },
+        zIndex: 9999,
+        disableForReducedMotion: true,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+    frame();
+  }
+
   resetBorradorDesdeConfig() {
     if (!this.config) return;
     this.borrador.gerente = { count: 1, retardos: this.config.gerenteRetardos };
     this.borrador.meseros = { count: this.config.meseroCount, retardos: this.config.meseroRetardos };
-    this.borrador.cocina  = { count: this.config.cocinaCount,  retardos: this.config.cocinaRetardos };
+    this.borrador.cocina = { count: this.config.cocinaCount, retardos: this.config.cocinaRetardos };
   }
 
   activarEdicion(area: AreaSlug) {
@@ -222,10 +272,10 @@ export class Distribucion implements OnInit {
         date: this.fecha,
         gerenteCount: 1,
         meseroCount: area === 'meseros' ? b.count : this.config.meseroCount,
-        cocinaCount: area === 'cocina'  ? b.count : this.config.cocinaCount,
+        cocinaCount: area === 'cocina' ? b.count : this.config.cocinaCount,
         gerenteRetardos: area === 'gerente' ? b.retardos : this.config.gerenteRetardos,
-        meseroRetardos:  area === 'meseros' ? b.retardos : this.config.meseroRetardos,
-        cocinaRetardos:  area === 'cocina'  ? b.retardos : this.config.cocinaRetardos,
+        meseroRetardos: area === 'meseros' ? b.retardos : this.config.meseroRetardos,
+        cocinaRetardos: area === 'cocina' ? b.retardos : this.config.cocinaRetardos,
       })
       .subscribe({
         next: (updated) => {
@@ -260,8 +310,8 @@ export class Distribucion implements OnInit {
     switch (nombre) {
       case 'Gerente': return 'gerente';
       case 'Meseros': return 'meseros';
-      case 'Cocina':  return 'cocina';
-      default:        return 'meseros';
+      case 'Cocina': return 'cocina';
+      default: return 'meseros';
     }
   }
 
@@ -308,5 +358,19 @@ export class Distribucion implements OnInit {
       .replace(/stroke=".*?"/g, `stroke="${color}"`);
     svgString = svgString.replace('<svg ', '<svg class="w-full h-full" ');
     return this.sanitizer.bypassSecurityTrustHtml(svgString);
+  }
+
+  get metaPropinas(): number {
+    return this.ventasDelDia * 0.10;
+  }
+
+  get porcentajeMeta(): number {
+    if (this.metaPropinas <= 0) return 0;
+    const pct = (this.totalTips / this.metaPropinas) * 100;
+    return Math.min(Math.max(pct, 0), 100);
+  }
+
+  get metaAlcanzada(): boolean {
+    return this.metaPropinas > 0 && this.totalTips >= this.metaPropinas;
   }
 }
