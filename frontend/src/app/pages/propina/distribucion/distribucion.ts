@@ -163,42 +163,26 @@ export class Distribucion implements OnInit {
     });
   }
 
-  private lanzarConfeti() {
-    const duration = 2000;
-    const end = Date.now() + duration;
-
-    confetti({
-      particleCount: 150,
-      spread: 70,
-      origin: { y: 0.6 },
-      zIndex: 9999,
-      disableForReducedMotion: true,
-    });
-
-    const frame = () => {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
+private lanzarConfeti() {
+    const base = {
+        particleCount: 50,
+        spread: 60,
+        startVelocity: 30,
+        gravity: 1.05,
+        scalar: 0.9,
         zIndex: 9999,
         disableForReducedMotion: true,
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        zIndex: 9999,
-        disableForReducedMotion: true,
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
     };
-    frame();
-  }
+
+    // Izquierda: sale hacia la derecha
+    confetti({ ...base, angle: 60, origin: { x: 0, y: 0.7 } });
+
+    // Centro: sale hacia arriba
+    confetti({ ...base, angle: 90, origin: { x: 0.5, y: 0.7 } });
+
+    // Derecha: sale hacia la izquierda
+    confetti({ ...base, angle: 120, origin: { x: 1, y: 0.7 } });
+}
 
   resetBorradorDesdeConfig() {
     if (!this.config) return;

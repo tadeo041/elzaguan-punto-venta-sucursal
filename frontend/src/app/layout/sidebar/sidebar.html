@@ -26,9 +26,14 @@
 
         <div class="absolute inset-0 overflow-y-auto overflow-x-hidden p-4 flex flex-col gap-1 pb-10">
 
+            <!-- Sección: General -->
             @if (!isCollapsed) {
                 <div class="px-2 mb-2 mt-2">
                     <p class="text-[.625rem] font-medium tracking-wider uppercase">General</p>
+                </div>
+            } @else {
+                <div class="flex flex-col items-center mt-2 mb-1">
+                    <p class="text-[.625rem] font-medium tracking-wider uppercase text-sidebar-text/70">General</p>
                 </div>
             }
 
@@ -180,9 +185,45 @@
                 }
             </div>
 
+            <!-- Sección: Soft Restaurant -->
+            @if (!isCollapsed) {
+                <div class="px-2 mt-6 mb-2">
+                    <p class="text-[.625rem] font-medium tracking-wider uppercase">Soft Restaurant</p>
+                </div>
+            } @else {
+                <div class="flex flex-col items-center mt-4 mb-1">
+                    <p class="text-[.625rem] font-medium tracking-wider uppercase text-sidebar-text/70 text-center leading-tight">Soft<br>Rest.</p>
+                </div>
+            }
+
+            <div class="relative group">
+                <a routerLink="/soft-restaurant/panel-general"
+                   routerLinkActive="text-sidebar-active-text font-semibold bg-sidebar-active-bg"
+                   (click)="menuColapsadoAbierto = null"
+                   class="flex items-center gap-3 px-3 py-3 rounded-lg transition-colors hover:bg-sidebar-hover-bg hover:text-sidebar-hover-text cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 shrink-0">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z" />
+                    </svg>
+                    @if (!isCollapsed) {
+                        <span>Panel general</span>
+                    }
+                </a>
+                @if (isCollapsed) {
+                    <div class="fixed ml-14 -mt-10 px-3 py-1.5 bg-black text-white text-xs font-medium rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-9999 shadow-lg hidden group-hover:block">
+                        Panel general
+                        <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[6px] border-r-black"></div>
+                    </div>
+                }
+            </div>
+
+            <!-- Sección: Configuraciones -->
             @if (!isCollapsed) {
                 <div class="px-2 mt-6 mb-2">
                     <p class="text-[.625rem] font-medium tracking-wider uppercase">Configuraciones</p>
+                </div>
+            } @else {
+                <div class="flex flex-col items-center mt-4 mb-1">
+                    <p class="text-[.625rem] font-medium tracking-wider uppercase text-sidebar-text/70">Config.</p>
                 </div>
             }
 
@@ -226,6 +267,17 @@
                     </div>
                 }
             </div>
+
+            <!-- Sección: Otros -->
+            @if (!isCollapsed) {
+                <div class="px-2 mt-6 mb-2">
+                    <p class="text-[.625rem] font-medium tracking-wider uppercase">Otros</p>
+                </div>
+            } @else {
+                <div class="flex flex-col items-center mt-4 mb-1">
+                    <p class="text-[.625rem] font-medium tracking-wider uppercase text-sidebar-text/70">Otros</p>
+                </div>
+            }
 
             <div class="relative group">
                 <a routerLink="/soporte"

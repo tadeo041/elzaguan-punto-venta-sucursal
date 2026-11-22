@@ -10,7 +10,7 @@ export const routes: Routes = [
             component: MainLayoutComponent,
             canActivate: [AuthGuard],
             children: [
-                { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
+                { path: 'dashboard', loadComponent: () => import('./pages/homePague/homePague').then(m => m.Dashboard) },
                 
                 // Rutas de Propina
                 {
@@ -32,7 +32,8 @@ export const routes: Routes = [
                 },                
                 // Ruta de bilioteca digital
                 { path: 'biblioteca', loadComponent: () => import('./pages/biblioteca/biblioteca').then(m => m.Biblioteca) },
-
+                // Ruta de Soft restaurant
+                { path: 'soft-restaurant/panel-general', loadComponent: () => import('./pages/soft-restaurant/panel-general/panel-general').then((m) => m.PanelGeneral),},                
                 // Ruta de soporte 
                 { path: 'soporte', loadComponent: () => import('./pages/soporte/soporte').then(m => m.Soporte) },
                 { path: 'configuracion', loadComponent: () => import('./pages/configuracion/configuracion').then(m => m.Configuracion) },
