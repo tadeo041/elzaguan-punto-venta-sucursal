@@ -53,6 +53,7 @@ export class Usuarios implements OnInit {
         this.cargarUsuarios();
     }
 
+    // Carga los usuarios según los filtros aplicados
     cargarUsuarios() {
         this.estadoVista = 'skeleton';
         this.actualizarTextoFiltros();
@@ -82,16 +83,19 @@ export class Usuarios implements OnInit {
         });
     }
 
+    // Actualiza los usuarios de la página actual
     actualizarPagina() {
         const start = (this.currentPage - 1) * this.pageSize;
         const end = start + this.pageSize;
         this.usuariosPagina = this.usuarios.slice(start, end);
     }
 
+    // Total de páginas calculado a partir del total de registros
     get totalPages(): number {
         return Math.max(1, Math.ceil(this.totalRecords / this.pageSize));
     }
 
+    // Navegación de paginación
     cambiarPaginaSiguiente() {
         if (this.currentPage < this.totalPages) {
             this.currentPage++;
@@ -113,6 +117,7 @@ export class Usuarios implements OnInit {
         this.actualizarPagina();
     }
 
+    // Texto descriptivo de los filtros activos
     actualizarTextoFiltros() {
         const textos: string[] = [];
 
@@ -133,6 +138,7 @@ export class Usuarios implements OnInit {
         this.textoFiltrosActivos = textos.join(' | ');
     }
 
+    // Aplicar y limpiar filtros
     aplicarFiltros() {
         this.cargarUsuarios();
     }
@@ -142,7 +148,7 @@ export class Usuarios implements OnInit {
         this.aplicarFiltros();
     }
 
-    // Acciones
+    // Acciones de modales
     abrirModalCrear() {
         this.usuarioAEditar = null;
         this.modalAbierto = true;
