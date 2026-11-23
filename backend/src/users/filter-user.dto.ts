@@ -13,7 +13,7 @@ export class FilterUserDto {
     @ApiPropertyOptional({
         description: 'Rol del usuario',
         enum: UserRole,
-        example: UserRole.CAJERO
+        example: UserRole.MESERO, // <-- antes CAJERO
     })
     @IsOptional()
     @IsEnum(UserRole)
@@ -21,9 +21,9 @@ export class FilterUserDto {
 
     @ApiPropertyOptional({
         description: 'Estado del usuario (true = activo, false = inactivo)',
-        example: 'true'
+        example: 'true',
     })
     @IsOptional()
-    @IsBooleanString() // Valida que llegue como texto "true" o "false" desde la URL
+    @IsBooleanString()
     isActive?: string;
 }

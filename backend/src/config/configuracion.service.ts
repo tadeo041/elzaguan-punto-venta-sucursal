@@ -11,6 +11,14 @@ const CLAVES_WHATSAPP = [
     'WHATSAPP_WABA_ID',
 ];
 
+const CLAVES_SOFT_RESTAURANT = [
+    'SR_SERVER',
+    'SR_PORT',
+    'SR_DATABASE',
+    'SR_USER',
+    'SR_PASSWORD',
+];
+
 @Injectable()
 export class ConfiguracionService implements OnModuleInit {
     private readonly logger = new Logger(ConfiguracionService.name);
@@ -28,7 +36,8 @@ export class ConfiguracionService implements OnModuleInit {
     }
 
     private async cargarDesdeEnv() {
-        for (const clave of CLAVES_WHATSAPP) {
+        const todas = [...CLAVES_WHATSAPP, ...CLAVES_SOFT_RESTAURANT];
+        for (const clave of todas) {
             const existente = await this.configRepo.findOne({ where: { clave } });
             if (!existente) {
                 const valorEnv = process.env[clave];
@@ -62,5 +71,15 @@ export class ConfiguracionService implements OnModuleInit {
                 this.cache.set(clave, valor);
             }
         }
+    }
+
+    obtenerSoftRestaurant() {
+        return {
+            server: this.obtener('SR_SERVER') ?? '',
+            port: this.obtener('SR_PORT') ?? '1433',
+            database: this.obtener('SR_DATABASE') ?? '',
+            user: this.obtener('SR_USER') ?? '',
+            password: this.obtener('SR_PASSWORD') ?? '',
+        };
     }
 }

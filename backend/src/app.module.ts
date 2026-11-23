@@ -21,6 +21,7 @@ import { DailyModule } from './daily/daily.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { WhatsappModule } from './whatsapp/whatsapp.module';
 import { ConfiguracionModule } from './config/configuracion.module';
+import { SoftRestaurantModule } from './soft-restaurant/soft-restaurant.module';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { ConfiguracionModule } from './config/configuracion.module';
             synchronize: true,
         }),
         ConfiguracionModule,
+        SoftRestaurantModule,          
         UsersModule,
         AuthModule,
         TipsModule,

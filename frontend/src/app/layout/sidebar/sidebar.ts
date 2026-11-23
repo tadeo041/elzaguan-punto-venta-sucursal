@@ -11,31 +11,40 @@ import { filter } from 'rxjs/operators';
   templateUrl: './sidebar.html',
 })
 export class SidebarComponent implements OnInit {
-  isCollapsed = false;
+  // Estado inicial CERRADO
+  isCollapsed = true;
+
   menuAbierto: string | null = 'propina';
   menuColapsadoAbierto: string | null = null;
   enRutaPropina = false;
   enRutaWhatsapp = false;
 
+  userRole: string | null = null;
+
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {
-    this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
-    ).subscribe((event: any) => {
-      const url = event.urlAfterRedirects;
+    this.userRole = this.authService.getUserRole() || null;
 
-      // Rutas activas
-      this.enRutaPropina = url.includes('/propina');
-      this.enRutaWhatsapp = url.includes('/whatsapp'); // <-- NUEVO
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        const url = event.urlAfterRedirects;
 
-      // Auto-abrir el acordeón correspondiente (solo en modo expandido)
-      if (this.enRutaPropina) {
-        this.menuAbierto = 'propina';
-      } else if (this.enRutaWhatsapp) {
-        this.menuAbierto = 'whatsapp'; 
-      }
-    });
+        this.enRutaPropina = url.includes('/propina');
+        this.enRutaWhatsapp = url.includes('/whatsapp');
+
+        if (this.enRutaPropina) {
+          this.menuAbierto = 'propina';
+        } else if (this.enRutaWhatsapp) {
+          this.menuAbierto = 'whatsapp';
+        }
+      });
+  }
+
+  /** Solo el administrador ve WhatsApp y Configuración */
+  get isAdmin(): boolean {
+    return this.userRole === 'administrador';
   }
 
   toggleSidebar() {
@@ -45,7 +54,8 @@ export class SidebarComponent implements OnInit {
 
   toggleMenu(menu: string) {
     if (this.isCollapsed) {
-      this.menuColapsadoAbierto = this.menuColapsadoAbierto === menu ? null : menu;
+      this.menuColapsadoAbierto =
+        this.menuColapsadoAbierto === menu ? null : menu;
     } else {
       this.menuAbierto = this.menuAbierto === menu ? null : menu;
     }

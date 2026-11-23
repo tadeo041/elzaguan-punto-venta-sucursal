@@ -9,6 +9,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfiguracionService } from './configuracion.service';
 import { UpdateWhatsappConfigDto } from './dto/update-whatsapp-config.dto';
+import { UpdateSoftRestaurantConfigDto } from './dto/update-soft-restaurant-config.dto';
 
 @ApiTags('configuracion')
 @ApiBearerAuth()
@@ -38,6 +39,32 @@ export class ConfiguracionController {
             WHATSAPP_VERIFY_TOKEN: dto.verifyToken,
             WHATSAPP_API_VERSION: dto.apiVersion,
             WHATSAPP_WABA_ID: dto.wabaId,
+        } as Record<string, string>);
+        return { ok: true };
+    }
+
+    @Get('soft-restaurant')
+    @ApiOperation({ summary: 'Obtener configuración de Soft Restaurant' })
+    obtenerSoftRestaurant() {
+        const sr = this.configService.obtenerSoftRestaurant();
+        return {
+            server: sr.server,
+            port: sr.port,
+            database: sr.database,
+            user: sr.user,
+            password: sr.password ? '****' : '',
+        };
+    }
+
+    @Put('soft-restaurant')
+    @ApiOperation({ summary: 'Actualizar configuración de Soft Restaurant' })
+    async actualizarSoftRestaurant(@Body() dto: UpdateSoftRestaurantConfigDto) {
+        await this.configService.actualizarVarias({
+            SR_SERVER: dto.server ?? '',
+            SR_PORT: dto.port ?? '',
+            SR_DATABASE: dto.database ?? '',
+            SR_USER: dto.user ?? '',
+            SR_PASSWORD: dto.password ?? '',
         } as Record<string, string>);
         return { ok: true };
     }

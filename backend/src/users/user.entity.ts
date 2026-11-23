@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
+    ADMINISTRADOR = 'administrador',
     GERENTE = 'gerente',
-    CAJERO = 'cajero',
     MESERO = 'mesero',
     COCINERO = 'cocinero',
 }
@@ -23,7 +23,7 @@ export class User {
 
     @Column({
         type: 'text',
-        default: UserRole.CAJERO, // Por defecto será cajero
+        default: UserRole.MESERO, // Rol operativo por defecto
     })
     role!: UserRole;
 

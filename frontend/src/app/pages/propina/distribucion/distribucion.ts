@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -6,7 +6,10 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import confetti from 'canvas-confetti';
+import { interval, Subscription } from 'rxjs';
+import { startWith, switchMap } from 'rxjs/operators';
 
+import { SoftRestaurantService } from '../../../services/soft-restaurant';
 import { DepartmentsService, Department } from '../../../services/departments';
 import {
   DailyService,
@@ -28,15 +31,17 @@ interface BorradorArea {
   imports: [CommonModule, FormsModule, BaseChartDirective],
   templateUrl: './distribucion.html',
 })
-export class Distribucion implements OnInit {
+export class Distribucion implements OnInit, OnDestroy {
   readonly MAX_PERSONAS = 5;
+
+  private softRestaurant = inject(SoftRestaurantService);
 
   fecha: string = '';
   loading = true;
   guardando = false;
   errorMessage = '';
   exitoMessage = '';
-  ventasDelDia = 12500.00;
+  ventasDelDia = 0;
 
   config?: DailyConfig;
   preview?: RepartoResultado;
@@ -44,6 +49,7 @@ export class Distribucion implements OnInit {
 
   private metaYaCelebrada = false;
   private cdr = inject(ChangeDetectorRef);
+  private pollSub?: Subscription;
 
   editando: Record<AreaSlug, boolean> = {
     gerente: false,
@@ -92,7 +98,13 @@ export class Distribucion implements OnInit {
 
     this.cargarIconos();
     this.cargarDepartamentos();
+    this.cargarVentasDelDia();
     this.cargarDia();
+    this.iniciarPollingVentas();
+  }
+
+  ngOnDestroy() {
+    this.pollSub?.unsubscribe();
   }
 
   private fechaLocalISO(): string {
@@ -101,6 +113,43 @@ export class Distribucion implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Consulta el total de ventas del día en Soft Restaurant.
+   * Se usa para calcular la meta del 10% de propinas.
+   */
+  private cargarVentasDelDia() {
+    if (!this.fecha) return;
+    this.softRestaurant.getVentasDia(this.fecha).subscribe({
+      next: (data) => {
+        this.ventasDelDia = data.total;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        // Si falla SR, no rompemos la vista: meta queda en 0
+        this.ventasDelDia = 0;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  /**
+   * Refresca el total de ventas cada 60s (por si la pantalla queda abierta).
+   */
+  private iniciarPollingVentas() {
+    this.pollSub = interval(60000)
+      .pipe(
+        startWith(0),
+        switchMap(() => this.softRestaurant.getVentasDia(this.fecha)),
+      )
+      .subscribe({
+        next: (data) => {
+          this.ventasDelDia = data.total;
+          this.cdr.detectChanges();
+        },
+        error: () => { /* silencioso para no interrumpir al usuario */ },
+      });
   }
 
   cargarIconos() {
@@ -126,6 +175,9 @@ export class Distribucion implements OnInit {
     this.errorMessage = '';
     this.exitoMessage = '';
     this.metaYaCelebrada = false;
+
+    // Refresca ventas del día para que la meta use el valor actual
+    this.cargarVentasDelDia();
 
     this.dailyService.getDay(this.fecha).subscribe({
       next: (config) => {
@@ -163,26 +215,21 @@ export class Distribucion implements OnInit {
     });
   }
 
-private lanzarConfeti() {
+  private lanzarConfeti() {
     const base = {
-        particleCount: 50,
-        spread: 60,
-        startVelocity: 30,
-        gravity: 1.05,
-        scalar: 0.9,
-        zIndex: 9999,
-        disableForReducedMotion: true,
+      particleCount: 50,
+      spread: 60,
+      startVelocity: 30,
+      gravity: 1.05,
+      scalar: 0.9,
+      zIndex: 9999,
+      disableForReducedMotion: true,
     };
 
-    // Izquierda: sale hacia la derecha
     confetti({ ...base, angle: 60, origin: { x: 0, y: 0.7 } });
-
-    // Centro: sale hacia arriba
     confetti({ ...base, angle: 90, origin: { x: 0.5, y: 0.7 } });
-
-    // Derecha: sale hacia la izquierda
     confetti({ ...base, angle: 120, origin: { x: 1, y: 0.7 } });
-}
+  }
 
   resetBorradorDesdeConfig() {
     if (!this.config) return;
@@ -356,5 +403,9 @@ private lanzarConfeti() {
 
   get metaAlcanzada(): boolean {
     return this.metaPropinas > 0 && this.totalTips >= this.metaPropinas;
+  }
+
+  get sinVentas(): boolean {
+    return this.ventasDelDia === 0;
   }
 }

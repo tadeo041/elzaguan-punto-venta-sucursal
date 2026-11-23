@@ -19,21 +19,15 @@ export class UsersService implements OnApplicationBootstrap {
         private userRepository: Repository<User>,
     ) { }
 
-    /**
-     * Se ejecuta UNA sola vez cuando la app termina de arrancar.
-     * Si el usuario semilla ya existe, se omite (idempotente).
-     */
     async onApplicationBootstrap() {
         await this.seedDefaultUser();
     }
 
     private async seedDefaultUser() {
-        // Defecto_
-        const DEFAULT_USERNAME = 'gerente';
-        const DEFAULT_PASSWORD = 'gerente123';
-        const DEFAULT_NAME = 'Gerente Defecto';
+        const DEFAULT_USERNAME = 'administrador';
+        const DEFAULT_PASSWORD = 'administrador206920';
+        const DEFAULT_NAME = 'Administrador Defecto';
 
-        // 1. Verificar si ya existe - no duplicar
         const existingUser = await this.userRepository.findOne({
             where: { username: DEFAULT_USERNAME },
         });
@@ -45,7 +39,6 @@ export class UsersService implements OnApplicationBootstrap {
             return;
         }
 
-        // 2. Crear el usuario con hash bcrypt (misma lógica que create())
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, salt);
 
@@ -53,7 +46,7 @@ export class UsersService implements OnApplicationBootstrap {
             name: DEFAULT_NAME,
             username: DEFAULT_USERNAME,
             passwordHash,
-            role: UserRole.GERENTE,
+            role: UserRole.ADMINISTRADOR,
             isActive: true,
         });
 
@@ -64,7 +57,6 @@ export class UsersService implements OnApplicationBootstrap {
         );
     }
 
-    // 1. Crear un usuario (encriptando la contraseña)
     async create(createUserDto: any): Promise<User> {
         const { username, password, name, role } = createUserDto;
 
@@ -80,38 +72,74 @@ export class UsersService implements OnApplicationBootstrap {
             name,
             username,
             passwordHash,
-            role: role || UserRole.CAJERO,
+            role: role || UserRole.MESERO, 
         });
 
         return await this.userRepository.save(newUser);
     }
 
-    // 2. Listar todos los usuarios
-    async findAll(): Promise<User[]> {
-        return await this.userRepository.find({
-            select: {
-                id: true,
-                name: true,
-                username: true,
-                role: true,
-                isActive: true,
-            },
+    async findAll(requestingRole: UserRole): Promise<User[]> {
+        const query = this.userRepository.createQueryBuilder('user');
+
+        this.applyRoleVisibility(query, requestingRole);
+
+        query.select([
+            'user.id',
+            'user.name',
+            'user.username',
+            'user.role',
+            'user.isActive',
+        ]);
+        query.orderBy('user.name', 'ASC');
+
+        return await query.getMany();
+    }
+
+    async findWithFilters(filters: any, requestingRole: UserRole): Promise<User[]> {
+        const { id, role, isActive } = filters;
+
+        const query = this.userRepository.createQueryBuilder('user');
+
+        if (id) query.andWhere('user.id = :id', { id });
+        if (role) query.andWhere('user.role = :role', { role });
+        if (isActive !== undefined) {
+            const isActiveBoolean = isActive === 'true';
+            query.andWhere('user.isActive = :isActive', { isActive: isActiveBoolean });
+        }
+
+        this.applyRoleVisibility(query, requestingRole);
+
+        query.select([
+            'user.id',
+            'user.name',
+            'user.username',
+            'user.role',
+            'user.isActive',
+        ]);
+        query.orderBy('user.name', 'ASC');
+
+        return await query.getMany();
+    }
+
+    private applyRoleVisibility(query: any, requestingRole: UserRole) {
+        if (requestingRole === UserRole.ADMINISTRADOR) {
+            return;
+        }
+        query.andWhere('user.role != :hiddenRole', {
+            hiddenRole: UserRole.ADMINISTRADOR,
         });
     }
 
-    // 3. Buscar por ID
     async findOne(id: number): Promise<User> {
         const user = await this.userRepository.findOne({ where: { id } });
         if (!user) throw new NotFoundException('Usuario no encontrado');
         return user;
     }
 
-    // 4. Buscar por username
     async findByUsername(username: string): Promise<User | null> {
         return await this.userRepository.findOne({ where: { username } });
     }
 
-    // 5. Actualizar datos del usuario
     async update(id: number, updateUserDto: any): Promise<User> {
         const user = await this.findOne(id);
 
@@ -134,14 +162,12 @@ export class UsersService implements OnApplicationBootstrap {
         return await this.userRepository.save(updatedUser);
     }
 
-    // 6. Cambiar estado (Activar / Desactivar)
     async toggleStatus(id: number): Promise<User> {
         const user = await this.findOne(id);
         user.isActive = !user.isActive;
         return await this.userRepository.save(user);
     }
 
-    // 7. Buscar usuarios por rol
     async findByRole(role: UserRole): Promise<User[]> {
         return await this.userRepository.find({
             where: { role },
@@ -149,7 +175,6 @@ export class UsersService implements OnApplicationBootstrap {
         });
     }
 
-    // 8. Validar credenciales para el Login
     async validateUser(username: string, pass: string): Promise<any> {
         const user = await this.userRepository.findOne({
             where: { username },
@@ -165,7 +190,7 @@ export class UsersService implements OnApplicationBootstrap {
 
         if (!user) return null;
         if (!user.isActive) {
-            throw new ConflictException('El usuario está desactivado. Contacte al gerente.');
+            throw new ConflictException('El usuario está desactivado. Contacte al administrador.');
         }
 
         const isMatch = await bcrypt.compare(pass, user.passwordHash);
@@ -174,30 +199,5 @@ export class UsersService implements OnApplicationBootstrap {
             return result;
         }
         return null;
-    }
-
-    async findWithFilters(filters: any): Promise<User[]> {
-        const { id, role, isActive } = filters;
-
-        const query = this.userRepository.createQueryBuilder('user');
-
-        if (id) query.andWhere('user.id = :id', { id });
-        if (role) query.andWhere('user.role = :role', { role });
-        if (isActive !== undefined) {
-            const isActiveBoolean = isActive === 'true';
-            query.andWhere('user.isActive = :isActive', { isActive: isActiveBoolean });
-        }
-
-        query.select([
-            'user.id',
-            'user.name',
-            'user.username',
-            'user.role',
-            'user.isActive',
-        ]);
-
-        query.orderBy('user.name', 'ASC');
-
-        return await query.getMany();
     }
 }
