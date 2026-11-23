@@ -69,7 +69,6 @@ const createWindow = () => {
     win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(__dirname, 'dist/elzaguan-punto-venta-sucursal/browser/index.html'));
-    win.webContents.openDevTools();
   }
 };
 

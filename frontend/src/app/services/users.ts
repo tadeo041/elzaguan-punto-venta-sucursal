@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export type UserRole = 'gerente' | 'cajero' | 'mesero' | 'cocinero';
+export type UserRole = 'administrador' | 'gerente' | 'mesero' | 'cocinero';
 
 export interface User {
   id: number;
@@ -23,7 +23,7 @@ export interface UserFilters {
   providedIn: 'root'
 })
 export class UsersService {
-private apiUrl = `${environment.apiUrl}/users`;
+  private apiUrl = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) { }
 

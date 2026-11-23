@@ -24,12 +24,12 @@ export class ModalUsuario implements OnChanges {
         name: string;
         username: string;
         password: string;
-        role: 'gerente' | 'cajero' | 'mesero' | 'cocinero';
+        role: 'administrador' | 'gerente' | 'mesero' | 'cocinero';
     } = {
             name: '',
             username: '',
             password: '',
-            role: 'cajero',
+            role: 'gerente',
         };
 
     mostrarPassword = false;
@@ -52,7 +52,7 @@ export class ModalUsuario implements OnChanges {
                 name: '',
                 username: '',
                 password: '',
-                role: 'cajero',
+                role: 'gerente',
             };
         }
         this.errorMessage = '';
