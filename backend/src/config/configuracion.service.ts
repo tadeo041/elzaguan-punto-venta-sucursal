@@ -30,9 +30,16 @@ export class ConfiguracionService implements OnModuleInit {
     ) {}
 
     async onModuleInit() {
-        await this.cargarDesdeEnv();
-        await this.recargarCache();
-        this.logger.log(`Configuración cargada: ${this.cache.size} claves`);
+        try {
+            await this.cargarDesdeEnv();
+            await this.recargarCache();
+            this.logger.log(`Configuración cargada: ${this.cache.size} claves`);
+        } catch (err: any) {
+            // No bloqueamos el arranque si Supabase está en cold start.
+            this.logger.error(
+                `No se pudo precargar configuración: ${err?.message ?? err}`,
+            );
+        }
     }
 
     private async cargarDesdeEnv() {
@@ -52,10 +59,25 @@ export class ConfiguracionService implements OnModuleInit {
     private async recargarCache() {
         const items = await this.configRepo.find();
         this.cache.clear();
-        items.forEach(item => this.cache.set(item.clave, item.valor));
+        items.forEach((item) => this.cache.set(item.clave, item.valor));
     }
 
     obtener(clave: string): string | undefined {
+        return this.cache.get(clave);
+    }
+
+    /**
+     * Versión async de `obtener` que recarga el cache si está vacío.
+     * Útil cuando `onModuleInit` falló por cold start de Supabase.
+     */
+    async obtenerAsync(clave: string): Promise<string | undefined> {
+        if (this.cache.size === 0) {
+            try {
+                await this.recargarCache();
+            } catch (err: any) {
+                this.logger.warn(`No se pudo recargar cache: ${err?.message ?? err}`);
+            }
+        }
         return this.cache.get(clave);
     }
 
@@ -64,12 +86,17 @@ export class ConfiguracionService implements OnModuleInit {
         this.cache.set(clave, valor);
     }
 
-    async actualizarVarias(items: Record<string, string>): Promise<void> {
+    /**
+     * Actualiza varias claves.
+     * - valor === undefined  → NO se toca (campo no enviado por el cliente)
+     * - valor === ''          → se borra (se guarda string vacío)
+     * - valor string          → se guarda
+     */
+    async actualizarVarias(items: Record<string, string | undefined>): Promise<void> {
         for (const [clave, valor] of Object.entries(items)) {
-            if (valor !== undefined && valor !== null && valor !== '') {
-                await this.configRepo.save({ clave, valor });
-                this.cache.set(clave, valor);
-            }
+            if (valor === undefined) continue;
+            await this.configRepo.save({ clave, valor });
+            this.cache.set(clave, valor);
         }
     }
 

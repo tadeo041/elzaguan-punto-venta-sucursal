@@ -1,40 +1,10 @@
 const { app, BrowserWindow, session } = require('electron');
-const { spawn } = require('child_process');
 const path = require('path');
-const fs = require('fs');
 
-let backendProcess = null;
-
-function startBackend() {
-  const isDev = process.env.NODE_ENV === 'development';
-
-  // En producción: resources/backend/main.js (lo copia electron-builder)
-  // En dev: backend/dist/main.js
-  const backendPath = isDev
-    ? path.join(__dirname, '..', 'backend', 'dist', 'main.js')
-    : path.join(process.resourcesPath, 'backend', 'main.js');
-
-  // Ruta escribible para la DB
-  const dbPath = isDev
-    ? path.join(__dirname, '..', 'backend', 'pos-database.sqlite')
-    : path.join(app.getPath('userData'), 'pos-database.sqlite');
-
-  // Asegurar que exista la carpeta
-  fs.mkdirSync(path.dirname(dbPath), { recursive: true });
-
-  backendProcess = spawn(process.execPath, [backendPath], {
-    cwd: path.dirname(backendPath),
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      DB_PATH: dbPath,
-      NODE_ENV: isDev ? 'development' : 'production',
-      ELECTRON_RUN_AS_NODE: '1',
-    },
-  });
-
-  backendProcess.on('error', (err) => console.error('Backend error:', err));
-}
+app.disableHardwareAcceleration(); 
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+app.commandLine.appendSwitch('no-sandbox');
 
 function configurarDescargas() {
   session.defaultSession.on('will-download', (event, item) => {
@@ -74,10 +44,5 @@ const createWindow = () => {
 
 app.on('ready', () => {
   configurarDescargas();
-  startBackend();
   createWindow();
-});
-
-app.on('will-quit', () => {
-  if (backendProcess) backendProcess.kill();
 });

@@ -1,35 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Tip } from '../tips/tip.entity';
 
 @Injectable()
 export class MetricsService {
-    constructor(
-        @InjectRepository(Tip)
-        private tipRepository: Repository<Tip>,
-    ) { }
+    constructor(@InjectRepository(Tip) private tipRepository: Repository<Tip>) { }
 
-    // Función auxiliar para calcular las fechas según el periodo
     private obtenerRangoFechas(period: string) {
         const hoy = new Date();
         let inicio = new Date();
-        let fin = new Date();
-
-        // Configuramos el fin del día de hoy (23:59:59)
+        const fin = new Date();
         fin.setHours(23, 59, 59, 999);
 
         switch (period) {
             case 'day':
                 inicio.setHours(0, 0, 0, 0);
                 break;
-            case 'week':
-                // Lunes de la semana actual
-                const diaSemana = hoy.getDay(); // 0 = Domingo, 1 = Lunes
+            case 'week': {
+                const diaSemana = hoy.getDay();
                 const diferencia = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
                 inicio.setDate(diferencia);
                 inicio.setHours(0, 0, 0, 0);
                 break;
+            }
             case 'month':
                 inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
                 break;
@@ -37,7 +31,7 @@ export class MetricsService {
                 inicio = new Date(hoy.getFullYear(), 0, 1);
                 break;
             default:
-                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1); // Por defecto mes
+                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
         }
         return { inicio, fin };
     }
@@ -45,104 +39,83 @@ export class MetricsService {
     async getMetrics(period: string) {
         const { inicio, fin } = this.obtenerRangoFechas(period);
 
-        // 1. KPIs (Totales)
         const rawKpis = await this.tipRepository
             .createQueryBuilder('tip')
-            .select('SUM(tip.amount)', 'total')
-            .addSelect('AVG(tip.amount)', 'promedio')
-            .addSelect('SUM(CASE WHEN tip.paymentType = 1 THEN tip.amount ELSE 0 END)', 'efectivo')
-            .addSelect('SUM(CASE WHEN tip.paymentType = 2 THEN tip.amount ELSE 0 END)', 'tarjeta')
+            .select('COALESCE(SUM(tip.amount), 0)', 'total')
+            .addSelect('COALESCE(AVG(tip.amount), 0)', 'promedio')
+            .addSelect('COALESCE(SUM(CASE WHEN tip.paymentType = 1 THEN tip.amount ELSE 0 END), 0)', 'efectivo')
+            .addSelect('COALESCE(SUM(CASE WHEN tip.paymentType = 2 THEN tip.amount ELSE 0 END), 0)', 'tarjeta')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
             .getRawOne();
 
-        // 2. Gráfico de Línea (Total por fecha)
         const graficoLinea = await this.tipRepository
             .createQueryBuilder('tip')
-            .select("DATE(tip.createdAt)", "fecha")
-            .addSelect('SUM(tip.amount)', 'total')
+            .select('CAST(tip.createdAt AS date)', 'fecha')
+            .addSelect('COALESCE(SUM(tip.amount), 0)', 'total')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
-            .groupBy("DATE(tip.createdAt)")
-            .orderBy("DATE(tip.createdAt)", "ASC")
+            .groupBy('CAST(tip.createdAt AS date)')
+            .orderBy('CAST(tip.createdAt AS date)', 'ASC')
             .getRawMany();
 
-        // 3. Gráfico de Barras (Promedio por Mesa)
         const graficoBarras = await this.tipRepository
             .createQueryBuilder('tip')
             .select('tip.tableNumber', 'mesa')
-            .addSelect('AVG(tip.amount)', 'promedio')
+            .addSelect('COALESCE(AVG(tip.amount), 0)', 'promedio')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
             .groupBy('tip.tableNumber')
             .orderBy('promedio', 'DESC')
-            .limit(10) // Top 10 mesas
+            .limit(10)
             .getRawMany();
 
-        // 4. Gráfico de Pastel (Método de Pago)
         const graficoPastel = await this.tipRepository
             .createQueryBuilder('tip')
             .select('tip.paymentType', 'tipo')
-            .addSelect('SUM(tip.amount)', 'total')
+            .addSelect('COALESCE(SUM(tip.amount), 0)', 'total')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
             .groupBy('tip.paymentType')
             .getRawMany();
 
-        // 5. Top Receptores (Barras Horizontales) — antes "Top Meseros"
-        //    Ahora usamos la relación receivedBy (mesero o gerente que recibió la propina)
         const graficoTopMeseros = await this.tipRepository
             .createQueryBuilder('tip')
             .leftJoin('tip.receivedBy', 'receptor')
             .select('receptor.name', 'mesero')
-            .addSelect('SUM(tip.amount)', 'total')
+            .addSelect('COALESCE(SUM(tip.amount), 0)', 'total')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
             .groupBy('receptor.id')
             .addGroupBy('receptor.name')
             .orderBy('total', 'DESC')
-            .limit(5) // Top 5
+            .limit(5)
             .getRawMany();
 
-        // 6. Gráfico de Línea de Tiempo (Propinas por Hora)
         const graficoHoras = await this.tipRepository
             .createQueryBuilder('tip')
-            .select("strftime('%H', tip.createdAt)", "hora")
-            .addSelect('SUM(tip.amount)', 'total')
+            .select('EXTRACT(HOUR FROM tip.createdAt)', 'hora')
+            .addSelect('COALESCE(SUM(tip.amount), 0)', 'total')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
-            .groupBy("strftime('%H', tip.createdAt)")
-            .orderBy("hora", "ASC")
+            .groupBy('EXTRACT(HOUR FROM tip.createdAt)')
+            .orderBy('EXTRACT(HOUR FROM tip.createdAt)', 'ASC')
             .getRawMany();
 
-        // 7. Formatear respuesta
         return {
             kpis: {
-                totalPropinas: Number(rawKpis.total) || 0,
-                promedioPorMesa: Number(rawKpis.promedio) || 0,
-                totalEfectivo: Number(rawKpis.efectivo) || 0,
-                totalTarjeta: Number(rawKpis.tarjeta) || 0,
+                totalPropinas: Number(rawKpis?.total) || 0,
+                promedioPorMesa: Number(rawKpis?.promedio) || 0,
+                totalEfectivo: Number(rawKpis?.efectivo) || 0,
+                totalTarjeta: Number(rawKpis?.tarjeta) || 0,
             },
-            graficoLineaTotal: graficoLinea.map(item => ({
-                fecha: item.fecha,
-                total: Number(item.total)
-            })),
-            graficoBarrasPromedio: graficoBarras.map(item => ({
-                mesa: `Mesa ${item.mesa}`,
-                promedio: Number(item.promedio)
-            })),
+            graficoLineaTotal: graficoLinea.map((i) => ({ fecha: i.fecha, total: Number(i.total) })),
+            graficoBarrasPromedio: graficoBarras.map((i) => ({ mesa: `Mesa ${i.mesa}`, promedio: Number(i.promedio) })),
             graficoPastelPagos: {
-                efectivo: Number(graficoPastel.find(p => p.tipo === 1)?.total) || 0,
-                tarjeta: Number(graficoPastel.find(p => p.tipo === 2)?.total) || 0,
+                efectivo: Number(graficoPastel.find((p) => Number(p.tipo) === 1)?.total) || 0,
+                tarjeta: Number(graficoPastel.find((p) => Number(p.tipo) === 2)?.total) || 0,
             },
-            graficoTopMeseros: graficoTopMeseros.map(item => ({
-                mesero: item.mesero ?? 'Sin asignar',
-                total: Number(item.total)
-            })),
-            graficoPropinasPorHora: graficoHoras.map(item => ({
-                hora: this.formatearHora(item.hora),
-                total: Number(item.total)
-            }))
+            graficoTopMeseros: graficoTopMeseros.map((i) => ({ mesero: i.mesero ?? 'Sin asignar', total: Number(i.total) })),
+            graficoPropinasPorHora: graficoHoras.map((i) => ({ hora: this.formatearHora(String(i.hora)), total: Number(i.total) })),
         };
     }
 
-    // Función auxiliar para AM/PM
     private formatearHora(hora24: string) {
-        const hora = parseInt(hora24);
+        const hora = parseInt(hora24, 10);
         const ampm = hora >= 12 ? 'PM' : 'AM';
         const hora12 = hora % 12 || 12;
         return `${hora12}:00 ${ampm}`;

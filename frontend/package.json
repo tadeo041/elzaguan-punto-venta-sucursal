@@ -3,12 +3,9 @@
   "version": "1.0.0",
   "main": "electron-main.js",
   "scripts": {
-    "electron:dev": "npm --prefix ../backend run build && cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
-    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
-    "rebuild:backend": "electron-rebuild -f -w better-sqlite3 --module-dir ../backend",
-    "electron:build": "npm --prefix ../backend run build && npm run rebuild:backend && npm run rebuild:native && ng build --base-href ./ && electron-builder",
-    "rebuild:win32": "electron-rebuild -f -w better-sqlite3 --arch=ia32",
-    "electron:build:win32": "npm --prefix ../backend run build && npm run rebuild:win32 && npm run rebuild:win32 --prefix ../backend && ng build --base-href ./ && electron-builder --win --ia32"
+    "electron:dev": "cross-env NODE_ENV=development concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
+    "electron:build": "ng build --base-href ./ && electron-builder",
+    "electron:build:win32": "ng build --base-href ./ && electron-builder --win --ia32"
   },
   "build": {
     "appId": "com.elzaguan.pos",
@@ -21,22 +18,6 @@
       "electron-main.js",
       "preload.js",
       "public/**/*"
-    ],
-    "extraResources": [
-      {
-        "from": "../backend/dist",
-        "to": "backend",
-        "filter": [
-          "**/*"
-        ]
-      },
-      {
-        "from": "../backend/node_modules",
-        "to": "backend/node_modules",
-        "filter": [
-          "**/*"
-        ]
-      }
     ],
     "win": {
       "target": "nsis",

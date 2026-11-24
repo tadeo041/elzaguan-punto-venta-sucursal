@@ -6,6 +6,7 @@ import { TipHistory, ActionType } from './tip-history.entity';
 import { CreateTipDto } from './create-tip.dto';
 import { FilterTipDto } from './filter-tip.dto';
 import { User } from '../users/user.entity';
+import { localDayStartUtcIso, localNextDayStartUtcIso } from '../common/date-utils';
 
 @Injectable()
 export class TipsService {
@@ -27,57 +28,78 @@ export class TipsService {
         const newTip = this.tipRepository.create({ ...tipData, receivedBy: receiver });
         const savedTip = await this.tipRepository.save(newTip);
 
-        const history = this.historyRepository.create({
-            tip: savedTip,
-            action: ActionType.CREACION,
-            newData: {
-                tableNumber: savedTip.tableNumber,
-                amount: Number(savedTip.amount),
-                paymentType: savedTip.paymentType,
-                receivedByName: receiver.name,
-            },
-            modifiedBy: { id: userId } as User,
-        });
-        await this.historyRepository.save(history);
+        await this.historyRepository.save(
+            this.historyRepository.create({
+                tip: savedTip,
+                action: ActionType.CREACION,
+                newData: {
+                    tableNumber: savedTip.tableNumber,
+                    amount: Number(savedTip.amount),
+                    paymentType: savedTip.paymentType,
+                    receivedByName: receiver.name,
+                },
+                modifiedBy: { id: userId } as User,
+            }),
+        );
 
         return savedTip;
     }
 
     async findAllWithFilters(filters: FilterTipDto) {
-        const { receivedById, paymentType, startDate, endDate, tzOffsetMin, page = 1, limit = 10 } = filters;
+        const {
+            receivedById,
+            paymentType,
+            startDate,
+            endDate,
+            tzOffsetMin,
+            page = 1,
+            limit = 10,
+        } = filters;
 
-        const query = this.tipRepository.createQueryBuilder('tip')
+        const query = this.tipRepository
+            .createQueryBuilder('tip')
             .leftJoinAndSelect('tip.receivedBy', 'receivedBy');
 
-        if (receivedById) query.andWhere('receivedBy.id = :receivedById', { receivedById });
-        if (paymentType) query.andWhere('tip.paymentType = :paymentType', { paymentType });
-
-        const TZ_OFFSET_MIN = tzOffsetMin ?? (-6 * 60);
-
-        if (startDate && endDate) {
-            const start = this.toUtcIso(startDate, false, TZ_OFFSET_MIN);
-            const end = this.toUtcIso(endDate, true, TZ_OFFSET_MIN);
-            query.andWhere(
-                'DATETIME(tip.createdAt) BETWEEN DATETIME(:start) AND DATETIME(:end)',
-                { start, end }
-            );
-        } else if (startDate) {
-            const start = this.toUtcIso(startDate, false, TZ_OFFSET_MIN);
-            query.andWhere('DATETIME(tip.createdAt) >= DATETIME(:start)', { start });
-        } else if (endDate) {
-            const end = this.toUtcIso(endDate, true, TZ_OFFSET_MIN);
-            query.andWhere('DATETIME(tip.createdAt) <= DATETIME(:end)', { end });
+        if (receivedById) {
+            query.andWhere('receivedBy.id = :receivedById', { receivedById });
+        }
+        if (paymentType) {
+            query.andWhere('tip.paymentType = :paymentType', { paymentType });
         }
 
-        const summaryQuery = query.clone();
+        const TZ = tzOffsetMin ?? -6 * 60;
 
+        // ── Filtro de fechas sobre timestamptz (half-open [start, end)) ──
+        if (startDate && endDate) {
+            const start = localDayStartUtcIso(startDate, TZ);
+            const end   = localNextDayStartUtcIso(endDate, TZ);
+            query.andWhere('tip.createdAt >= :start AND tip.createdAt < :end', { start, end });
+        } else if (startDate) {
+            const start = localDayStartUtcIso(startDate, TZ);
+            query.andWhere('tip.createdAt >= :start', { start });
+        } else if (endDate) {
+            // Solo hasta el final del `endDate` inclusive
+            const end = localNextDayStartUtcIso(endDate, TZ);
+            query.andWhere('tip.createdAt < :end', { end });
+        }
+
+        // ── Summary ──
+        const summaryQuery = query.clone();
         const summary = await summaryQuery
-            .select('SUM(tip.amount)', 'total')
-            .addSelect(`SUM(CASE WHEN tip.paymentType = ${PaymentType.EFECTIVO} THEN tip.amount ELSE 0 END)`, 'totalEfectivo')
-            .addSelect(`SUM(CASE WHEN tip.paymentType = ${PaymentType.TARJETA} THEN tip.amount ELSE 0 END)`, 'totalTarjeta')
+            .select('COALESCE(SUM(tip.amount), 0)', 'total')
+            .addSelect(
+                `COALESCE(SUM(CASE WHEN tip.paymentType = ${PaymentType.EFECTIVO} THEN tip.amount ELSE 0 END), 0)`,
+                'totalEfectivo',
+            )
+            .addSelect(
+                `COALESCE(SUM(CASE WHEN tip.paymentType = ${PaymentType.TARJETA} THEN tip.amount ELSE 0 END), 0)`,
+                'totalTarjeta',
+            )
             .getRawOne();
 
-        query.orderBy('tip.createdAt', 'DESC')
+        // ── Paginación ──
+        query
+            .orderBy('tip.createdAt', 'DESC')
             .skip((page - 1) * limit)
             .take(limit);
 
@@ -92,27 +114,11 @@ export class TipsService {
                 limit,
             },
             summary: {
-                total: Number(summary.total) || 0,
-                totalEfectivo: Number(summary.totalEfectivo) || 0,
-                totalTarjeta: Number(summary.totalTarjeta) || 0,
+                total: Number(summary?.total) || 0,
+                totalEfectivo: Number(summary?.totalEfectivo) || 0,
+                totalTarjeta: Number(summary?.totalTarjeta) || 0,
             },
         };
-    }
-
-    private toUtcIso(
-        dateStr: string,
-        endOfDay: boolean,
-        offsetMin: number = -6 * 60,
-    ): string {
-        const [y, m, d] = dateStr.split('-').map(Number);
-        const h = endOfDay ? 23 : 0;
-        const mi = endOfDay ? 59 : 0;
-        const s = endOfDay ? 59 : 0;
-        const ms = endOfDay ? 999 : 0;
-
-        const localAsUtc = Date.UTC(y, m - 1, d, h, mi, s, ms);
-        const utc = new Date(localAsUtc - offsetMin * 60 * 1000);
-        return utc.toISOString();
     }
 
     async getTipDetails(id: number) {
@@ -120,7 +126,6 @@ export class TipsService {
             where: { id },
             relations: { receivedBy: true },
         });
-
         if (!tip) throw new NotFoundException('Propina no encontrada');
 
         const history = await this.historyRepository.find({
@@ -128,18 +133,17 @@ export class TipsService {
             relations: { modifiedBy: true },
             order: { createdAt: 'DESC' },
         });
-
         return { tip, history };
     }
 
     async getResumen() {
         const tips = await this.tipRepository.find();
         let total = 0, totalEfectivo = 0, totalTarjeta = 0;
-        tips.forEach((tip) => {
-            const monto = Number(tip.amount);
+        tips.forEach((t) => {
+            const monto = Number(t.amount);
             total += monto;
-            if (tip.paymentType === PaymentType.EFECTIVO) totalEfectivo += monto;
-            if (tip.paymentType === PaymentType.TARJETA) totalTarjeta += monto;
+            if (t.paymentType === PaymentType.EFECTIVO) totalEfectivo += monto;
+            if (t.paymentType === PaymentType.TARJETA) totalTarjeta += monto;
         });
         return { total, totalEfectivo, totalTarjeta };
     }
@@ -153,7 +157,9 @@ export class TipsService {
 
         let nuevoReceptor = tip.receivedBy;
         if (updateTipDto.receivedById && updateTipDto.receivedById !== tip.receivedBy?.id) {
-            const receiver = await this.userRepository.findOne({ where: { id: updateTipDto.receivedById } });
+            const receiver = await this.userRepository.findOne({
+                where: { id: updateTipDto.receivedById },
+            });
             if (!receiver) throw new NotFoundException('Usuario receptor no encontrado');
             nuevoReceptor = receiver;
         }

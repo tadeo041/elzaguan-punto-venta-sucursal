@@ -4,15 +4,14 @@ import { Repository, Between } from 'typeorm';
 import { DailyConfig } from './daily-config.entity';
 import { CreateDailyConfigDto } from './create-daily-config.dto';
 import { Tip } from '../tips/tip.entity';
+import { localDayStartUtcIso, localNextDayStartUtcIso } from '../common/date-utils';
 
-// Reglas de negocio fijas (no configurables)
-const STRUCTURAL_TRANSFER_RATE = 0.20; // Cocina → Meseros: 20% de la bolsa de cocina
-const LATE_PENALTY_RATE = 0.20;        // Cada retardo descuenta 20% de la parte individual
+const STRUCTURAL_TRANSFER_RATE = 0.20;
+const LATE_PENALTY_RATE = 0.20;
 
-// Nombres fijos de los departamentos
 const AREA_GERENTE = 'Gerente';
 const AREA_MESEROS = 'Meseros';
-const AREA_COCINA = 'Cocina';
+const AREA_COCINA  = 'Cocina';
 
 type AreaKey = typeof AREA_GERENTE | typeof AREA_MESEROS | typeof AREA_COCINA;
 
@@ -46,7 +45,6 @@ export class DailyService {
         private tipRepo: Repository<Tip>,
     ) { }
 
-    // 1. Obtener o crear la config del día
     async getOrCreate(date: string) {
         let config = await this.dailyRepo.findOne({ where: { date } });
         if (!config) {
@@ -67,7 +65,6 @@ export class DailyService {
         return config;
     }
 
-    // 2. Actualizar cantidades y retardos (solo si NO está confirmado)
     async update(date: string, dto: CreateDailyConfigDto) {
         const config = await this.getOrCreate(date);
         if (config.confirmed) {
@@ -81,30 +78,23 @@ export class DailyService {
         const mRet = dto.meseroRetardos ?? config.meseroRetardos;
         const cRet = dto.cocinaRetardos ?? config.cocinaRetardos;
 
-        if (gRet > gCount)
-            throw new BadRequestException('Retardos de gerente no pueden exceder la cantidad de gerentes');
-        if (mRet > mCount)
-            throw new BadRequestException('Retardos de meseros no pueden exceder la cantidad de meseros');
-        if (cRet > cCount)
-            throw new BadRequestException('Retardos de cocina no pueden exceder la cantidad de cocineros');
+        if (gRet > gCount) throw new BadRequestException('Retardos de gerente no pueden exceder la cantidad de gerentes');
+        if (mRet > mCount) throw new BadRequestException('Retardos de meseros no pueden exceder la cantidad de meseros');
+        if (cRet > cCount) throw new BadRequestException('Retardos de cocina no pueden exceder la cantidad de cocineros');
 
         Object.assign(config, dto);
         return await this.dailyRepo.save(config);
     }
 
-    // 3. Vista previa del reparto (sin guardar snapshot)
     async preview(date: string, tzOffsetMin: number = -360): Promise<RepartoResultado> {
         const config = await this.getOrCreate(date);
         const totalTips = await this.getTotalTipsForDate(date, tzOffsetMin);
         return this.calculate(config, totalTips);
     }
 
-    // 4. Confirmar el día → congela snapshot
     async confirm(date: string, tzOffsetMin: number = -360) {
         const config = await this.getOrCreate(date);
-        if (config.confirmed) {
-            throw new ConflictException('Este día ya fue confirmado.');
-        }
+        if (config.confirmed) throw new ConflictException('Este día ya fue confirmado.');
 
         const totalTips = await this.getTotalTipsForDate(date, tzOffsetMin);
         const result = this.calculate(config, totalTips);
@@ -117,68 +107,33 @@ export class DailyService {
         return { message: 'Día confirmado y snapshot guardado', config };
     }
 
-    // 5. Historial (días confirmados)
     async history(from?: string, to?: string) {
         const where: any = { confirmed: true };
         if (from && to) where.date = Between(from, to);
         else if (from) where.date = Between(from, '9999-12-31');
         else if (to) where.date = Between('0000-01-01', to);
 
-        return await this.dailyRepo.find({
-            where,
-            order: { date: 'DESC' },
-        });
+        return await this.dailyRepo.find({ where, order: { date: 'DESC' } });
     }
 
-    // 6. Detalle de un día (para consulta histórica)
     async findOne(date: string) {
         const config = await this.dailyRepo.findOne({ where: { date } });
         if (!config) throw new NotFoundException('Día no encontrado');
         return config;
     }
 
-    // ── Helpers ────────────────────────────────────────────
-
-    /**
-     * Suma las propinas del día usando el rango UTC correcto para SQLite.
-     * SQLite guarda createdAt como 'YYYY-MM-DD HH:MM:SS' en UTC (sin zona).
-     */
+    // ── Helper corregido para PostgreSQL ──────────────────
     private async getTotalTipsForDate(date: string, tzOffsetMin: number = -360): Promise<number> {
-        const startUtc = this.toSqliteUtc(date, false, tzOffsetMin);
-        const endUtc   = this.toSqliteUtc(date, true,  tzOffsetMin);
+        const start = localDayStartUtcIso(date, tzOffsetMin);
+        const end   = localNextDayStartUtcIso(date, tzOffsetMin);
 
         const raw = await this.tipRepo
             .createQueryBuilder('tip')
-            .select('SUM(tip.amount)', 'total')
-            .where('tip.createdAt BETWEEN :start AND :end', { start: startUtc, end: endUtc })
+            .select('COALESCE(SUM(tip.amount), 0)', 'total')
+            .where('tip.createdAt >= :start AND tip.createdAt < :end', { start, end })
             .getRawOne();
+
         return Number(raw?.total) || 0;
-    }
-
-    /**
-     * Convierte una fecha local (YYYY-MM-DD) al string UTC en formato SQLite:
-     *   'YYYY-MM-DD HH:MM:SS'
-     * - endOfDay = false → inicio del día local (00:00:00)
-     * - endOfDay = true  → fin del día local (23:59:59)
-     * offsetMin: offset de la zona del cliente en minutos (México = -360)
-     */
-    private toSqliteUtc(dateStr: string, endOfDay: boolean, offsetMin: number = -360): string {
-        const [y, m, d] = dateStr.split('-').map(Number);
-        const h  = endOfDay ? 23 : 0;
-        const mi = endOfDay ? 59 : 0;
-        const s  = endOfDay ? 59 : 0;
-
-        // Fecha local interpretada como si fuera UTC
-        const localAsUtc = Date.UTC(y, m - 1, d, h, mi, s, 0);
-
-        // Restamos el offset para obtener el UTC real
-        const utc = new Date(localAsUtc - offsetMin * 60 * 1000);
-
-        const pad = (n: number) => String(n).padStart(2, '0');
-        return (
-            `${utc.getUTCFullYear()}-${pad(utc.getUTCMonth() + 1)}-${pad(utc.getUTCDate())} ` +
-            `${pad(utc.getUTCHours())}:${pad(utc.getUTCMinutes())}:${pad(utc.getUTCSeconds())}`
-        );
     }
 
     private calculate(config: DailyConfig, totalTips: number): RepartoResultado {
@@ -195,24 +150,21 @@ export class DailyService {
             };
         }
 
-        // ── Paso 1: reparto base igualitario ──
         const basePorPersona = totalTips / totalPersonas;
         const bolsas: Record<AreaKey, number> = {
             [AREA_GERENTE]: basePorPersona * config.gerenteCount,
             [AREA_MESEROS]: basePorPersona * config.meseroCount,
-            [AREA_COCINA]: basePorPersona * config.cocinaCount,
+            [AREA_COCINA]:  basePorPersona * config.cocinaCount,
         };
 
-        // ── Paso 2: regla estructural Cocina → Meseros (20% de la bolsa de cocina) ──
         const aporteCocina = bolsas[AREA_COCINA] * STRUCTURAL_TRANSFER_RATE;
         bolsas[AREA_COCINA] -= aporteCocina;
         bolsas[AREA_MESEROS] += aporteCocina;
 
-        // ── Paso 3: retardos por persona, dentro de cada departamento ──
         const areasInfo = [
             { key: AREA_GERENTE as AreaKey, count: config.gerenteCount, retardos: config.gerenteRetardos },
             { key: AREA_MESEROS as AreaKey, count: config.meseroCount, retardos: config.meseroRetardos },
-            { key: AREA_COCINA as AreaKey, count: config.cocinaCount, retardos: config.cocinaRetardos },
+            { key: AREA_COCINA as AreaKey,  count: config.cocinaCount,  retardos: config.cocinaRetardos },
         ].filter((a) => a.count > 0);
 
         interface ResultadoInterno {
@@ -235,7 +187,6 @@ export class DailyService {
             const tardios = Math.min(area.retardos, area.count);
             const noTardios = area.count - tardios;
             const totalDescontado = descuentoPorRetardo * tardios;
-
             const montoTardio = individual - descuentoPorRetardo;
 
             if (noTardios > 0) {
@@ -262,19 +213,12 @@ export class DailyService {
             }
         });
 
-        // ── Paso 4: redistribuir excedentes entre los OTROS departamentos ──
         const areasConExcedente = areasInfo.filter((a) => resultado[a.key].excedente > 0);
-        const totalExcedente = areasConExcedente.reduce(
-            (s, a) => s + resultado[a.key].excedente, 0,
-        );
+        const totalExcedente = areasConExcedente.reduce((s, a) => s + resultado[a.key].excedente, 0);
 
         if (totalExcedente > 0) {
-            let receptores = areasInfo.filter(
-                (a) => !areasConExcedente.some((e) => e.key === a.key),
-            );
-            if (receptores.length === 0) {
-                receptores = areasInfo;
-            }
+            let receptores = areasInfo.filter((a) => !areasConExcedente.some((e) => e.key === a.key));
+            if (receptores.length === 0) receptores = areasInfo;
 
             const porReceptor = totalExcedente / receptores.length;
             receptores.forEach((r) => {
@@ -289,7 +233,6 @@ export class DailyService {
             });
         }
 
-        // ── Paso 5: armado del resultado ──
         const areas: AreaCalculada[] = areasInfo.map((a) => {
             const info = resultado[a.key];
             return {
@@ -310,9 +253,7 @@ export class DailyService {
             totalTips: Number(totalTips.toFixed(2)),
             totalPersonas,
             basePorPersona: Number(basePorPersona.toFixed(2)),
-            reglaEstructural: {
-                aporteCocinaAMeseros: Number(aporteCocina.toFixed(2)),
-            },
+            reglaEstructural: { aporteCocinaAMeseros: Number(aporteCocina.toFixed(2)) },
             areas,
         };
     }

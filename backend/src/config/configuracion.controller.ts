@@ -39,7 +39,7 @@ export class ConfiguracionController {
             WHATSAPP_VERIFY_TOKEN: dto.verifyToken,
             WHATSAPP_API_VERSION: dto.apiVersion,
             WHATSAPP_WABA_ID: dto.wabaId,
-        } as Record<string, string>);
+        });
         return { ok: true };
     }
 
@@ -59,13 +59,16 @@ export class ConfiguracionController {
     @Put('soft-restaurant')
     @ApiOperation({ summary: 'Actualizar configuración de Soft Restaurant' })
     async actualizarSoftRestaurant(@Body() dto: UpdateSoftRestaurantConfigDto) {
+        // Si el frontend reenvía el placeholder '****', NO tocamos la contraseña real.
+        const password = dto.password === '****' ? undefined : dto.password;
+
         await this.configService.actualizarVarias({
-            SR_SERVER: dto.server ?? '',
-            SR_PORT: dto.port ?? '',
-            SR_DATABASE: dto.database ?? '',
-            SR_USER: dto.user ?? '',
-            SR_PASSWORD: dto.password ?? '',
-        } as Record<string, string>);
+            SR_SERVER: dto.server,
+            SR_PORT: dto.port,
+            SR_DATABASE: dto.database,
+            SR_USER: dto.user,
+            SR_PASSWORD: password,
+        });
         return { ok: true };
     }
 
