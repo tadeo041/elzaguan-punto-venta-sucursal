@@ -28,8 +28,8 @@ async function bootstrap() {
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, documentFactory);
 
-  await app.listen(3000, '0.0.0.0');
+  const port = process.env.PORT || 3000; 
+  await app.listen(port, '0.0.0.0'); 
   console.log(`Backend corriendo en: ${await app.getUrl()}`);
-  console.log(`Swagger disponible en: http://localhost:3000/docs`);
 }
 bootstrap();
