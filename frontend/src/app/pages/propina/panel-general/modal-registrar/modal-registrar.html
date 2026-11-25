@@ -54,6 +54,61 @@
             </div>
             }
 
+            <!-- ═══════════════════════════════════════════════════ -->
+            <!-- Origen de la propina (mismo estilo que pago)        -->
+            <!-- ═══════════════════════════════════════════════════ -->
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-label-text">
+                    ¿De dónde viene la propina?<span class="text-label-required">*</span>
+                </label>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Tarjeta Mesa -->
+                    <label class="cursor-pointer h-full">
+                        <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="1" class="peer sr-only">
+
+                        <div class="h-full flex items-start gap-3 p-3 border rounded-xl bg-input-bg transition-all"
+                             [ngClass]="errorMessage
+                                ? 'border-red-500 ring-1 ring-red-400'
+                                : 'border-input-border peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:ring-1 peer-checked:ring-blue-600'">
+
+                            <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="1"
+                                class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 rounded-full transition-all cursor-pointer"
+                                [ngClass]="errorMessage
+                                    ? 'border-red-500 checked:border-red-600 checked:bg-red-600 checked:shadow-[inset_0_0_0_3px_white]'
+                                    : 'border-muted checked:border-blue-600 checked:bg-blue-600 checked:shadow-[inset_0_0_0_3px_white]'">
+
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-heading">Mesa</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Propina dejada en una mesa del salón</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Tarjeta Pedido -->
+                    <label class="cursor-pointer h-full">
+                        <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="2" class="peer sr-only">
+
+                        <div class="h-full flex items-start gap-3 p-3 border rounded-xl bg-input-bg transition-all"
+                             [ngClass]="errorMessage
+                                ? 'border-red-500 ring-1 ring-red-400'
+                                : 'border-input-border peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:ring-1 peer-checked:ring-blue-600'">
+
+                            <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="2"
+                                class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 rounded-full transition-all cursor-pointer"
+                                [ngClass]="errorMessage
+                                    ? 'border-red-500 checked:border-red-600 checked:bg-red-600 checked:shadow-[inset_0_0_0_3px_white]'
+                                    : 'border-muted checked:border-blue-600 checked:bg-blue-600 checked:shadow-[inset_0_0_0_3px_white]'">
+
+                            <div class="flex flex-col">
+                                <span class="text-sm font-semibold text-heading">Pedido</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Propina de pedido para llevar o delivery</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
             <!-- Seleccione el método de propina -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-label-text">
@@ -140,7 +195,7 @@
                         }
                     </select>
 
-                    <!-- Chevron dinámico: cambia a flecha hacia arriba al abrir -->
+                    <!-- Chevron dinámico -->
                     <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors"
                          [ngClass]="errorMessage ? 'text-red-500' : 'text-muted group-focus-within:text-blue-600'">
                         @if (selectAbierto) {
@@ -156,9 +211,11 @@
                 </div>
             </div>
 
-            <!-- N° mesa y Propina -->
+            <!-- N° mesa (solo si es Mesa) y Propina -->
             <div class="grid grid-cols-2 gap-4">
-                <!-- N° mesa -->
+
+                <!-- N° mesa (solo si source = 1) -->
+                @if (nuevaPropina.source === 1) {
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-label-text">N° mesa<span
                             class="text-label-required">*</span></label>
@@ -182,9 +239,10 @@
                     </div>
                     <span class="text-xs text-muted">Entre {{ MESA_MIN }} y {{ MESA_MAX }}</span>
                 </div>
+                }
 
-                <!-- Propina (Monto) -->
-                <div class="flex flex-col gap-1.5">
+                <!-- Propina (Monto) — ocupa todo el ancho si es Pedido -->
+                <div class="flex flex-col gap-1.5" [class.col-span-2]="nuevaPropina.source === 2">
                     <label class="text-sm font-medium text-label-text">Propina<span
                             class="text-label-required">*</span></label>
                     <div class="relative group">

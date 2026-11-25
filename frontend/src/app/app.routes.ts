@@ -16,7 +16,7 @@ export const routes: Routes = [
                 {
                     path: 'propina',
                     children: [
-                        { path: 'panel-general', loadComponent: () => import('./pages/propina/panel-general/panel-general').then(m => m.PanelGeneralComponent) },
+                        { path: 'panel-general', loadComponent: () => import('./pages/propina/panel-general/panel-general').then(m => m.PanelGeneral) },
                         { path: 'distribucion', loadComponent: () => import('./pages/propina/distribucion/distribucion').then(m => m.Distribucion) },
                         { path: 'reportes', loadComponent: () => import('./pages/propina/reportes/reportes').then(m => m.Reportes) },
                         { path: '', redirectTo: 'panel-general', pathMatch: 'full' },                        

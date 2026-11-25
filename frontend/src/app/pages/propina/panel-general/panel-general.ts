@@ -1,10 +1,28 @@
-import { Component, OnInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, Subscription, debounceTime } from 'rxjs';
+
+import { TipsService } from '../../../services/tips';
+import { TipListResponse } from '../../../services/tips';
+import { UsersService } from '../../../services/users';
+
 import { ModalRegistrar } from './modal-registrar/modal-registrar';
 import { ModalDetalle } from './modal-detalle/modal-detalle';
-import { TipsService } from '../../../services/tips';
-import { UsersService } from '../../../services/users';
+
+type VistaEstado = 'skeleton' | 'empty' | 'data';
+
+interface Mesero {
+  id: number;
+  name: string;
+  role?: string;
+}
 
 @Component({
   selector: 'app-panel-general',
@@ -12,132 +30,126 @@ import { UsersService } from '../../../services/users';
   imports: [CommonModule, FormsModule, ModalRegistrar, ModalDetalle],
   templateUrl: './panel-general.html',
 })
-export class PanelGeneralComponent implements OnInit {
-  estadoVista: 'skeleton' | 'data' | 'empty' = 'skeleton';
-
-  meseroAbierto = false;
-  tipoAbierto = false;
-
+export class PanelGeneral implements OnInit, OnDestroy {
+  // ── Filtros ──
   filtros = {
-    receivedById: '',
-    paymentType: '',
+    receivedById: '' as number | '',
+    paymentType: '' as 1 | 2 | '',
+    source: '' as 1 | 2 | '',       
     startDate: '',
-    endDate: ''
+    endDate: '',
   };
 
-  textoFiltrosActivos: string = '';
+  // ── Chevrón animado de los selects ──
+  meseroAbierto = false;
+  tipoAbierto = false;
+  origenAbierto = false;             
 
+  // ── Estado de la vista ──
+  estadoVista: VistaEstado = 'skeleton';
   propinas: any[] = [];
-  meseros: any[] = [];
   resumen = { total: 0, totalEfectivo: 0, totalTarjeta: 0 };
 
+  // ── Paginación ──
   currentPage = 1;
-  totalPages = 1;
-  totalRecords = 0;
   pageSize = 7;
-  Math = Math;
+  totalRecords = 0;
+  totalPages = 1;
 
+  // ── Modales ──
   modalAbierto = false;
-  propinaAEditar: any = null;
-
   modalDetalleAbierto = false;
   tipSeleccionadaId: number | null = null;
+  propinaAEditar: any = null;
+
+  // ── Listas auxiliares ──
+  meseros: Mesero[] = [];
+
+  // ── Control de concurrencia (opcional, evita requests duplicados) ──
+  private filtroSub = new Subject<void>();
+  private filtroSubRef?: Subscription;
 
   constructor(
     private tipsService: TipsService,
-    private usersService: UsersService
-  ) { }
+    private usersService: UsersService,
+    private cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
-    this.inicializarFechasPorDefecto();
     this.cargarMeseros();
+
+    // Dispara búsqueda con debounce al cambiar filtros (opcional)
+    this.filtroSubRef = this.filtroSub
+      .pipe(debounceTime(250))
+      .subscribe(() => {
+        this.currentPage = 1;
+        this.cargarPropinas();
+      });
+
     this.cargarPropinas();
   }
 
-  inicializarFechasPorDefecto() {
-    const hoy = new Date();
-    const hoyStr = this.formatearFecha(hoy);
-
-    this.filtros.startDate = hoyStr;
-    this.filtros.endDate = hoyStr;
-
-    this.actualizarTextoFiltros();
+  ngOnDestroy() {
+    this.filtroSubRef?.unsubscribe();
   }
 
-  formatearFecha(fecha: Date): string {
-    const año = fecha.getFullYear();
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-    const dia = String(fecha.getDate()).padStart(2, '0');
-    return `${año}-${mes}-${dia}`;
-  }
-
-  actualizarTextoFiltros() {
-    let textos = [];
-
-    if (this.filtros.startDate && this.filtros.endDate) {
-      const inicio = new Date(this.filtros.startDate + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-      const fin = new Date(this.filtros.endDate + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
-      textos.push(`Fecha: ${inicio} - ${fin}`);
-    }
-
-    if (this.filtros.paymentType) {
-      const tipo = this.filtros.paymentType === '1' ? 'Efectivo' : 'Tarjeta';
-      textos.push(`Tipo: ${tipo}`);
-    }
-
-    if (this.filtros.receivedById) {
-      const mesero = this.meseros.find(m => m.id == this.filtros.receivedById);
-      if (mesero) textos.push(`Mesero: ${mesero.name}`);
-    }
-
-    this.textoFiltrosActivos = textos.length > 0 ? textos.join(' | ') : '';
-  }
+  // ═══════════════════════════════════════════════════════
+  // CARGA DE DATOS
+  // ═══════════════════════════════════════════════════════
 
   cargarMeseros() {
-    this.usersService.getUsers({ isActive: 'true' }).subscribe({
-      next: (users) => {
-        const rolesPermitidos = ['mesero', 'cajero', 'gerente'];
-        this.meseros = users.filter(u => rolesPermitidos.includes(u.role));
-        this.actualizarTextoFiltros();
+    this.usersService.getUsers().subscribe({
+      next: (users: any[]) => {
+        this.meseros = users
+          .filter((u) => u.role === 'mesero' || u.role === 'gerente')
+          .map((u) => ({ id: u.id, name: u.name, role: u.role }));
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar meseros', err)
+      error: () => {
+        this.meseros = [];
+      },
     });
   }
 
   cargarPropinas() {
     this.estadoVista = 'skeleton';
-    this.actualizarTextoFiltros();
+    this.cdr.detectChanges();
 
-    const tzOffsetMin = -new Date().getTimezoneOffset();
-
-    this.tipsService.getTips({
-      ...this.filtros,
-      tzOffsetMin,
-      page: this.currentPage,
-      limit: this.pageSize
-    }).subscribe({
-      next: (response) => {
-        this.resumen = response.summary;
-        this.currentPage = response.meta.currentPage;
-        this.totalPages = response.meta.totalPages;
-        this.totalRecords = response.meta.totalRecords;
-
-        if (response.data.length === 0) {
-          this.propinas = [];
-          this.estadoVista = 'empty';
-        } else {
+    this.tipsService
+      .findAll({
+        receivedById: this.filtros.receivedById || undefined,
+        paymentType: this.filtros.paymentType || undefined,
+        source: this.filtros.source || undefined,     
+        startDate: this.filtros.startDate || undefined,
+        endDate: this.filtros.endDate || undefined,
+        tzOffsetMin: -new Date().getTimezoneOffset(),
+        page: this.currentPage,
+        limit: this.pageSize,
+      })
+      .subscribe({
+        next: (response: TipListResponse) => {
           this.propinas = response.data;
-          this.estadoVista = 'data';
-        }
-      },
-      error: (err) => {
-        console.error('Error al cargar propinas', err);
-        this.estadoVista = 'empty';
-        this.resumen = { total: 0, totalEfectivo: 0, totalTarjeta: 0 };
-        this.totalRecords = 0;
-      }
-    });
+          this.totalRecords = response.meta.totalRecords;
+          this.totalPages = response.meta.totalPages;
+          this.resumen = response.summary;
+          this.estadoVista = response.data.length === 0 ? 'empty' : 'data';
+          this.cdr.detectChanges();
+        },
+        error: (err: any) => {
+          console.error('Error al cargar propinas', err);
+          this.propinas = [];
+          this.totalRecords = 0;
+          this.totalPages = 1;
+          this.resumen = { total: 0, totalEfectivo: 0, totalTarjeta: 0 };
+          this.estadoVista = 'empty';
+          this.cdr.detectChanges();
+        },
+      });
   }
+
+  // ═══════════════════════════════════════════════════════
+  // FILTROS
+  // ═══════════════════════════════════════════════════════
 
   aplicarFiltros() {
     this.currentPage = 1;
@@ -145,29 +157,63 @@ export class PanelGeneralComponent implements OnInit {
   }
 
   limpiarFiltros() {
-    const hoy = new Date();
-    const hoyStr = this.formatearFecha(hoy);
-
     this.filtros = {
       receivedById: '',
       paymentType: '',
-      startDate: hoyStr,
-      endDate: hoyStr
+      source: '',           // 🆕
+      startDate: '',
+      endDate: '',
     };
+    this.currentPage = 1;
+    this.cargarPropinas();
+  }
 
-    this.aplicarFiltros();
+  get textoFiltrosActivos(): string {
+    const partes: string[] = [];
+
+    if (this.filtros.receivedById) {
+      const mesero = this.meseros.find(
+        (m) => m.id === Number(this.filtros.receivedById),
+      );
+      if (mesero) partes.push(`Mesero: ${mesero.name}`);
+    }
+
+    if (this.filtros.paymentType) {
+      const tipo =
+        Number(this.filtros.paymentType) === 1 ? 'Efectivo' : 'Tarjeta';
+      partes.push(`Tipo: ${tipo}`);
+    }
+
+    if (this.filtros.source) {                          // 🆕
+      const origen =
+        Number(this.filtros.source) === 1 ? 'Mesa' : 'Pedido';
+      partes.push(`Origen: ${origen}`);
+    }
+
+    if (this.filtros.startDate) {
+      partes.push(`Desde: ${this.filtros.startDate}`);
+    }
+    if (this.filtros.endDate) {
+      partes.push(`Hasta: ${this.filtros.endDate}`);
+    }
+
+    return partes.join(' · ');
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // PAGINACIÓN
+  // ═══════════════════════════════════════════════════════
+
+  cambiarPaginaAnterior() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.cargarPropinas();
+    }
   }
 
   cambiarPaginaSiguiente() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      this.cargarPropinas();
-    }
-  }
-
-  cambiarPaginaAnterior() {
-    if (this.currentPage > 1) {
-      this.currentPage--;
       this.cargarPropinas();
     }
   }
@@ -179,6 +225,18 @@ export class PanelGeneralComponent implements OnInit {
     this.cargarPropinas();
   }
 
+  get totalPagesList(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  get Math() {
+    return Math;
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // MODALES
+  // ═══════════════════════════════════════════════════════
+
   abrirModalRegistro() {
     this.propinaAEditar = null;
     this.modalAbierto = true;
@@ -189,10 +247,9 @@ export class PanelGeneralComponent implements OnInit {
     this.modalAbierto = true;
   }
 
-  onPropinaGuardada() {
-    this.modalAbierto = false;
-    this.propinaAEditar = null;
-    this.cargarPropinas();
+  abrirModalDetalle(id: number) {
+    this.tipSeleccionadaId = id;
+    this.modalDetalleAbierto = true;
   }
 
   cerrarModal() {
@@ -200,13 +257,13 @@ export class PanelGeneralComponent implements OnInit {
     this.propinaAEditar = null;
   }
 
-  abrirModalDetalle(id: number) {
-    this.tipSeleccionadaId = id;
-    this.modalDetalleAbierto = true;
-  }
-
   cerrarModalDetalle() {
     this.modalDetalleAbierto = false;
     this.tipSeleccionadaId = null;
+  }
+
+  onPropinaGuardada() {
+    this.cerrarModal();
+    this.cargarPropinas();
   }
 }

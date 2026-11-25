@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Tip, PaymentType } from './tip.entity';
+import { Tip, PaymentType, TipSource } from './tip.entity';
 import { TipHistory, ActionType } from './tip-history.entity';
 import { CreateTipDto } from './create-tip.dto';
 import { FilterTipDto } from './filter-tip.dto';
@@ -20,12 +20,24 @@ export class TipsService {
     ) { }
 
     async create(createTipDto: CreateTipDto, userId: number) {
-        const { receivedById, ...tipData } = createTipDto;
+        const { receivedById, source, tableNumber, ...rest } = createTipDto;
+
+        if (source === TipSource.MESA && !tableNumber) {
+            throw new BadRequestException('Debes indicar el número de mesa para una propina de mesa.');
+        }
+        if (source === TipSource.PEDIDO && tableNumber) {
+            throw new BadRequestException('Una propina de pedido no debe tener número de mesa.');
+        }
 
         const receiver = await this.userRepository.findOne({ where: { id: receivedById } });
         if (!receiver) throw new NotFoundException('Usuario receptor no encontrado');
 
-        const newTip = this.tipRepository.create({ ...tipData, receivedBy: receiver });
+        const newTip = this.tipRepository.create({
+            ...rest,
+            tableNumber: source === TipSource.MESA ? tableNumber : null,
+            source,
+            receivedBy: receiver,
+        });
         const savedTip = await this.tipRepository.save(newTip);
 
         await this.historyRepository.save(
@@ -33,6 +45,7 @@ export class TipsService {
                 tip: savedTip,
                 action: ActionType.CREACION,
                 newData: {
+                    source: savedTip.source,
                     tableNumber: savedTip.tableNumber,
                     amount: Number(savedTip.amount),
                     paymentType: savedTip.paymentType,
@@ -49,6 +62,7 @@ export class TipsService {
         const {
             receivedById,
             paymentType,
+            source,
             startDate,
             endDate,
             tzOffsetMin,
@@ -60,16 +74,12 @@ export class TipsService {
             .createQueryBuilder('tip')
             .leftJoinAndSelect('tip.receivedBy', 'receivedBy');
 
-        if (receivedById) {
-            query.andWhere('receivedBy.id = :receivedById', { receivedById });
-        }
-        if (paymentType) {
-            query.andWhere('tip.paymentType = :paymentType', { paymentType });
-        }
+        if (receivedById) query.andWhere('receivedBy.id = :receivedById', { receivedById });
+        if (paymentType) query.andWhere('tip.paymentType = :paymentType', { paymentType });
+        if (source) query.andWhere('tip.source = :source', { source });
 
         const TZ = tzOffsetMin ?? -6 * 60;
 
-        // ── Filtro de fechas sobre timestamptz (half-open [start, end)) ──
         if (startDate && endDate) {
             const start = localDayStartUtcIso(startDate, TZ);
             const end   = localNextDayStartUtcIso(endDate, TZ);
@@ -78,12 +88,10 @@ export class TipsService {
             const start = localDayStartUtcIso(startDate, TZ);
             query.andWhere('tip.createdAt >= :start', { start });
         } else if (endDate) {
-            // Solo hasta el final del `endDate` inclusive
             const end = localNextDayStartUtcIso(endDate, TZ);
             query.andWhere('tip.createdAt < :end', { end });
         }
 
-        // ── Summary ──
         const summaryQuery = query.clone();
         const summary = await summaryQuery
             .select('COALESCE(SUM(tip.amount), 0)', 'total')
@@ -97,7 +105,6 @@ export class TipsService {
             )
             .getRawOne();
 
-        // ── Paginación ──
         query
             .orderBy('tip.createdAt', 'DESC')
             .skip((page - 1) * limit)
@@ -155,6 +162,19 @@ export class TipsService {
         });
         if (!tip) throw new NotFoundException('Propina no encontrada');
 
+        const nuevoSource: TipSource = updateTipDto.source ?? tip.source;
+        const nuevoTableNumber: number | null =
+            nuevoSource === TipSource.MESA
+                ? (updateTipDto.tableNumber ?? tip.tableNumber)
+                : null;
+
+        if (nuevoSource === TipSource.MESA && !nuevoTableNumber) {
+            throw new BadRequestException('Debes indicar el número de mesa para una propina de mesa.');
+        }
+        if (nuevoSource === TipSource.PEDIDO && updateTipDto.tableNumber) {
+            throw new BadRequestException('Una propina de pedido no debe tener número de mesa.');
+        }
+
         let nuevoReceptor = tip.receivedBy;
         if (updateTipDto.receivedById && updateTipDto.receivedById !== tip.receivedBy?.id) {
             const receiver = await this.userRepository.findOne({
@@ -162,6 +182,16 @@ export class TipsService {
             });
             if (!receiver) throw new NotFoundException('Usuario receptor no encontrado');
             nuevoReceptor = receiver;
+        }
+
+        if (updateTipDto.source !== undefined && updateTipDto.source !== tip.source) {
+            await this.historyRepository.save({
+                tip,
+                action: ActionType.CAMBIO_ORIGEN,
+                previousData: { source: tip.source },
+                newData: { source: nuevoSource },
+                modifiedBy: { id: userId } as User,
+            });
         }
 
         if (updateTipDto.amount !== undefined && Number(updateTipDto.amount) !== Number(tip.amount)) {
@@ -184,12 +214,16 @@ export class TipsService {
             });
         }
 
-        if (updateTipDto.tableNumber !== undefined && Number(updateTipDto.tableNumber) !== Number(tip.tableNumber)) {
+        if (
+            nuevoSource === TipSource.MESA &&
+            nuevoTableNumber !== null &&
+            Number(nuevoTableNumber) !== Number(tip.tableNumber)
+        ) {
             await this.historyRepository.save({
                 tip,
                 action: ActionType.CAMBIO_MESA,
-                previousData: { tableNumber: Number(tip.tableNumber) },
-                newData: { tableNumber: Number(updateTipDto.tableNumber) },
+                previousData: { tableNumber: tip.tableNumber },
+                newData: { tableNumber: nuevoTableNumber },
                 modifiedBy: { id: userId } as User,
             });
         }
@@ -205,7 +239,8 @@ export class TipsService {
         }
 
         Object.assign(tip, {
-            tableNumber: updateTipDto.tableNumber ?? tip.tableNumber,
+            source: nuevoSource,
+            tableNumber: nuevoTableNumber,
             amount: updateTipDto.amount ?? tip.amount,
             paymentType: updateTipDto.paymentType ?? tip.paymentType,
             receivedBy: nuevoReceptor,

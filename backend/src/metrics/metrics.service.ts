@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Tip } from '../tips/tip.entity';
+import { Tip, TipSource } from '../tips/tip.entity';
 
 @Injectable()
 export class MetricsService {
@@ -14,9 +14,7 @@ export class MetricsService {
         fin.setHours(23, 59, 59, 999);
 
         switch (period) {
-            case 'day':
-                inicio.setHours(0, 0, 0, 0);
-                break;
+            case 'day': inicio.setHours(0, 0, 0, 0); break;
             case 'week': {
                 const diaSemana = hoy.getDay();
                 const diferencia = hoy.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
@@ -24,14 +22,9 @@ export class MetricsService {
                 inicio.setHours(0, 0, 0, 0);
                 break;
             }
-            case 'month':
-                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
-                break;
-            case 'year':
-                inicio = new Date(hoy.getFullYear(), 0, 1);
-                break;
-            default:
-                inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+            case 'month': inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1); break;
+            case 'year':  inicio = new Date(hoy.getFullYear(), 0, 1); break;
+            default:      inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
         }
         return { inicio, fin };
     }
@@ -48,6 +41,14 @@ export class MetricsService {
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
             .getRawOne();
 
+        // Totales por origen (útil para mostrar en UI)
+        const rawOrigen = await this.tipRepository
+            .createQueryBuilder('tip')
+            .select(`COALESCE(SUM(CASE WHEN tip.source = ${TipSource.MESA}   THEN tip.amount ELSE 0 END), 0)`, 'mesa')
+            .addSelect(`COALESCE(SUM(CASE WHEN tip.source = ${TipSource.PEDIDO} THEN tip.amount ELSE 0 END), 0)`, 'pedido')
+            .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
+            .getRawOne();
+
         const graficoLinea = await this.tipRepository
             .createQueryBuilder('tip')
             .select('CAST(tip.createdAt AS date)', 'fecha')
@@ -57,11 +58,14 @@ export class MetricsService {
             .orderBy('CAST(tip.createdAt AS date)', 'ASC')
             .getRawMany();
 
+        // Promedio por mesa — SOLO MESA
         const graficoBarras = await this.tipRepository
             .createQueryBuilder('tip')
             .select('tip.tableNumber', 'mesa')
             .addSelect('COALESCE(AVG(tip.amount), 0)', 'promedio')
             .where('tip.createdAt BETWEEN :inicio AND :fin', { inicio, fin })
+            .andWhere('tip.source = :source', { source: TipSource.MESA })
+            .andWhere('tip.tableNumber IS NOT NULL')
             .groupBy('tip.tableNumber')
             .orderBy('promedio', 'DESC')
             .limit(10)
@@ -102,6 +106,8 @@ export class MetricsService {
                 promedioPorMesa: Number(rawKpis?.promedio) || 0,
                 totalEfectivo: Number(rawKpis?.efectivo) || 0,
                 totalTarjeta: Number(rawKpis?.tarjeta) || 0,
+                totalMesa: Number(rawOrigen?.mesa) || 0,
+                totalPedido: Number(rawOrigen?.pedido) || 0,
             },
             graficoLineaTotal: graficoLinea.map((i) => ({ fecha: i.fecha, total: Number(i.total) })),
             graficoBarrasPromedio: graficoBarras.map((i) => ({ mesa: `Mesa ${i.mesa}`, promedio: Number(i.promedio) })),

@@ -4,10 +4,11 @@ import { User } from '../users/user.entity';
 
 export enum ActionType {
     CREACION = 'creacion',
-    CAMBIO_RECEPTOR = 'cambio_receptor',  
+    CAMBIO_RECEPTOR = 'cambio_receptor',
     CAMBIO_MONTO = 'cambio_monto',
     CAMBIO_MESA = 'cambio_mesa',
     CAMBIO_ENTREGA = 'cambio_entrega',
+    CAMBIO_ORIGEN = 'cambio_origen',
 }
 
 @Entity('tip_history')

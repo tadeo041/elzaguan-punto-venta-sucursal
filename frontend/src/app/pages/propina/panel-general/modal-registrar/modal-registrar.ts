@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TipsService } from '../../../../services/tips';
 
+type TipSource = 1 | 2; // 1 = Mesa, 2 = Pedido
+
 @Component({
   selector: 'app-modal-registrar',
   standalone: true,
@@ -25,11 +27,13 @@ export class ModalRegistrar implements OnChanges {
   readonly PROPINA_MAX = 1000;
 
   nuevaPropina: {
+    source: TipSource;            // 🆕 Origen
     tableNumber: number | null;
     amount: number | null;
     paymentType: number;
     receivedById: number | string;
   } = {
+    source: 1,                    // 🆕 por defecto Mesa
     tableNumber: null,
     amount: null,
     paymentType: 1,
@@ -51,7 +55,8 @@ export class ModalRegistrar implements OnChanges {
       const propina = changes['propinaAEditar'].currentValue;
 
       this.nuevaPropina = {
-        tableNumber: propina.tableNumber,
+        source: (propina.source as TipSource) ?? 1,
+        tableNumber: propina.tableNumber ?? null,
         amount: Number(propina.amount),
         paymentType: propina.paymentType,
         receivedById: propina.receivedBy?.id ?? propina.receivedById ?? '',
@@ -59,6 +64,7 @@ export class ModalRegistrar implements OnChanges {
     } else {
       this.esEdicion = false;
       this.nuevaPropina = {
+        source: 1,
         tableNumber: null,
         amount: null,
         paymentType: 1,
@@ -130,23 +136,26 @@ export class ModalRegistrar implements OnChanges {
     this.errorMessage = '';
     this.exitoMessage = '';
 
-    const mesa = Number(this.nuevaPropina.tableNumber);
+    const esMesa = this.nuevaPropina.source === 1;
     const monto = Number(this.nuevaPropina.amount);
 
-    // Validación: N° mesa entero entre MESA_MIN y MESA_MAX
-    if (
-      this.nuevaPropina.tableNumber === null ||
-      this.nuevaPropina.tableNumber === undefined ||
-      isNaN(mesa) ||
-      !Number.isInteger(mesa) ||
-      mesa < this.MESA_MIN ||
-      mesa > this.MESA_MAX
-    ) {
-      this.errorMessage = `El número de mesa debe ser un entero entre ${this.MESA_MIN} y ${this.MESA_MAX}.`;
-      return;
+    // ── Validación de N° mesa (solo si es Mesa) ──
+    if (esMesa) {
+      const mesa = Number(this.nuevaPropina.tableNumber);
+      if (
+        this.nuevaPropina.tableNumber === null ||
+        this.nuevaPropina.tableNumber === undefined ||
+        isNaN(mesa) ||
+        !Number.isInteger(mesa) ||
+        mesa < this.MESA_MIN ||
+        mesa > this.MESA_MAX
+      ) {
+        this.errorMessage = `El número de mesa debe ser un entero entre ${this.MESA_MIN} y ${this.MESA_MAX}.`;
+        return;
+      }
     }
 
-    // Validación: Propina monto entre PROPINA_MIN y PROPINA_MAX
+    // ── Validación de Propina ──
     if (
       this.nuevaPropina.amount === null ||
       this.nuevaPropina.amount === undefined ||
@@ -158,7 +167,7 @@ export class ModalRegistrar implements OnChanges {
       return;
     }
 
-    // Validación: trabajador seleccionado
+    // ── Validación de trabajador ──
     if (!this.nuevaPropina.receivedById) {
       this.errorMessage = 'Por favor, selecciona quién recibió la propina.';
       return;
@@ -166,16 +175,21 @@ export class ModalRegistrar implements OnChanges {
 
     this.isLoading = true;
 
-    const payload = {
-      tableNumber: mesa,
+    // Payload: tableNumber solo si es Mesa
+    const payload: any = {
+      source: this.nuevaPropina.source,
       amount: monto,
       paymentType: Number(this.nuevaPropina.paymentType),
       receivedById: Number(this.nuevaPropina.receivedById),
     };
 
+    if (esMesa) {
+      payload.tableNumber = Number(this.nuevaPropina.tableNumber);
+    }
+
     const peticion = this.esEdicion
-      ? this.tipsService.updateTip(this.propinaAEditar.id, payload)
-      : this.tipsService.createTip(payload);
+      ? this.tipsService.update(this.propinaAEditar.id, payload)   // ✅ antes: updateTip
+      : this.tipsService.create(payload);                          // ✅ antes: createTip
 
     peticion.subscribe({
       next: () => {
@@ -189,7 +203,7 @@ export class ModalRegistrar implements OnChanges {
           this.cerrarModal();
         }, 900);
       },
-      error: (err) => {
+      error: (err: any) => {                                       // ✅ antes: (err)
         this.isLoading = false;
         this.errorMessage = err.error?.message || 'Error al guardar la propina.';
       },
