@@ -6,7 +6,7 @@ import { CreateDailyConfigDto } from './create-daily-config.dto';
 import { Tip } from '../tips/tip.entity';
 import { localDayStartUtcIso, localNextDayStartUtcIso } from '../common/date-utils';
 
-const STRUCTURAL_TRANSFER_RATE = 0.20;
+const STRUCTURAL_TRANSFER_RATE = 0.25;
 const LATE_PENALTY_RATE = 0.20;
 
 const AREA_GERENTE = 'Gerente';
@@ -122,7 +122,6 @@ export class DailyService {
         return config;
     }
 
-    // ── Helper corregido para PostgreSQL ──────────────────
     private async getTotalTipsForDate(date: string, tzOffsetMin: number = -360): Promise<number> {
         const start = localDayStartUtcIso(date, tzOffsetMin);
         const end   = localNextDayStartUtcIso(date, tzOffsetMin);

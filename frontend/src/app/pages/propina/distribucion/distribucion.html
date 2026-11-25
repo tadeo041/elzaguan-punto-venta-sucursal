@@ -44,9 +44,7 @@
     </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════ -->
     <!-- SKELETON DE CARGA -->
-    <!-- ═══════════════════════════════════════════════════════ -->
     @if (loading) {
 
     <!-- 1. Skeleton nota "¿Cómo se calcula?" -->
@@ -181,9 +179,7 @@
     </div>
     }
 
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- CONTENIDO REAL (solo cuando ya cargó) -->
-    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- DATOS CARGADOS -->
 
     <!-- Nota: ¿Cómo se calcula? -->
     @if (!loading && config && preview) {
@@ -211,7 +207,7 @@
                     <span class="font-bold shrink-0">2.</span>
                     <span>
                         <strong>Regla estructural:</strong>
-                        Cocina aporta el 20% de su bolsa a Meseros
+                        Cocina aporta el 25% de su bolsa a Meseros
                         (<strong>${{ preview.reglaEstructural.aporteCocinaAMeseros | number:'1.2-2' }}</strong>).
                     </span>
                 </div>

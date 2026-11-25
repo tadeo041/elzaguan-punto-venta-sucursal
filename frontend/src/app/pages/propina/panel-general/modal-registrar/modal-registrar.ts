@@ -1,9 +1,19 @@
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnChanges,
+  SimpleChanges,
+  AfterViewInit,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TipsService } from '../../../../services/tips';
 
-type TipSource = 1 | 2; 
+type TipSource = 1 | 2;
 
 @Component({
   selector: 'app-modal-registrar',
@@ -11,19 +21,22 @@ type TipSource = 1 | 2;
   imports: [CommonModule, FormsModule],
   templateUrl: './modal-registrar.html',
 })
-export class ModalRegistrar implements OnChanges {
+export class ModalRegistrar implements OnChanges, AfterViewInit {
   @Input() meseros: any[] = [];
   @Input() propinaAEditar: any = null;
 
   @Output() cerrar = new EventEmitter<void>();
   @Output() propinaGuardada = new EventEmitter<void>();
 
+  /** Referencia al body scrolleable del modal (para enfocar al abrir y navegar) */
+  @ViewChild('modalBody') modalBody!: ElementRef<HTMLElement>;
+
   esEdicion = false;
 
   // Límites de validación
   readonly MESA_MIN = 1;
   readonly MESA_MAX = 30;
-  readonly PROPINA_MIN = 0.01;
+  readonly PROPINA_MIN = 0;
   readonly PROPINA_MAX = 1000;
 
   nuevaPropina: {
@@ -47,7 +60,20 @@ export class ModalRegistrar implements OnChanges {
   // Controla el icono del chevron del select
   selectAbierto = false;
 
+  /**
+   * Flag que se activa cuando el usuario presiona Enter sobre el <select>.
+   * Se usa para saber si el `change` posterior vino de teclado y así avanzar
+   * el foco automáticamente al siguiente campo.
+   */
+  private enterPresionadoEnSelect = false;
+
   constructor(private tipsService: TipsService) {}
+
+  ngAfterViewInit() {
+    // Enfoca el primer campo al abrir el modal para que Enter funcione
+    // sin necesidad de hacer clic dentro del modal.
+    this.enfocarPrimerElemento();
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['propinaAEditar'] && changes['propinaAEditar'].currentValue) {
@@ -75,7 +101,110 @@ export class ModalRegistrar implements OnChanges {
     // Limpiamos mensajes al abrir/cambiar
     this.errorMessage = '';
     this.exitoMessage = '';
+
+    // Si el componente se reutiliza sin destruirse, re-enfocamos al abrir.
+    // El setTimeout deja que Angular renderice el @if de los inputs condicionales.
+    setTimeout(() => this.enfocarPrimerElemento(), 0);
   }
+
+  // Navegación con Enter
+
+  /** Enfoca el primer campo focusable del body del modal. */
+  private enfocarPrimerElemento() {
+    const contenedor = this.modalBody?.nativeElement;
+    if (!contenedor) return;
+
+    const primero = contenedor.querySelector<HTMLElement>(
+      'input:not([disabled]), select:not([disabled])'
+    );
+    if (primero) {
+      primero.focus();
+      if (primero instanceof HTMLInputElement && primero.type === 'number') {
+        primero.select();
+      }
+    }
+  }
+
+  /** Devuelve la lista de elementos focusables visibles dentro del body. */
+  private obtenerFocusables(desde: HTMLElement): HTMLElement[] {
+    const contenedor = desde.closest('.overflow-y-auto') as HTMLElement | null;
+    if (!contenedor) return [];
+
+    return Array.from(
+      contenedor.querySelectorAll<HTMLElement>(
+        'input:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    ).filter(el => el.offsetParent !== null && !el.hasAttribute('hidden'));
+  }
+
+  /** Mueve el foco al siguiente focusable; si es el último, dispara guardar(). */
+  private moverFocoAlSiguiente(desde: HTMLElement) {
+    const focusables = this.obtenerFocusables(desde);
+    const idx = focusables.indexOf(desde);
+    if (idx === -1) return;
+
+    const siguiente = focusables[idx + 1];
+
+    if (siguiente) {
+      siguiente.focus();
+      // En inputs numéricos, seleccionar el contenido para escribir encima
+      if (siguiente instanceof HTMLInputElement && siguiente.type === 'number') {
+        siguiente.select();
+      }
+    } else {
+      // Último focusable => guardar
+      this.guardar();
+    }
+  }
+
+  /**
+   * Navegación con Enter en el modal:
+   * - Enter en cualquier campo => foco al siguiente focusable visible.
+   * - Enter en el último campo => dispara guardar().
+   * - El <select> se maneja aparte con onSelectKeydown/onSelectChange.
+   */
+  avanzarConEnter(event: KeyboardEvent) {
+    if (event.key !== 'Enter') return;
+
+    const target = event.target as HTMLElement;
+
+    // El <select> tiene su propio flujo (ver onSelectKeydown/onSelectChange)
+    if (target.tagName === 'SELECT') return;
+
+    event.preventDefault();
+    this.moverFocoAlSiguiente(target);
+  }
+
+  /**
+   * keydown del <select>:
+   * - Enter => marcamos que el próximo change vino de teclado.
+   *   NO hacemos preventDefault para dejar que el navegador confirme la opción.
+   */
+  onSelectKeydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.enterPresionadoEnSelect = true;
+    }
+  }
+
+  /**
+   * change del <select>:
+   * - Si el cambio vino de Enter, avanzamos el foco al siguiente campo.
+   * - Si vino de mouse, no movemos el foco (sería molesto).
+   */
+  onSelectChange(event: Event) {
+    this.errorMessage = '';
+
+    if (this.enterPresionadoEnSelect) {
+      this.enterPresionadoEnSelect = false;
+      const select = event.target as HTMLElement;
+      // setTimeout(0) para que el dropdown nativo termine de cerrarse
+      // antes de mover el foco.
+      setTimeout(() => this.moverFocoAlSiguiente(select), 0);
+    }
+  }
+
+  // Validación / teclas
+
 
   /** Bloquea teclas no numéricas y signos negativos en el input de N° mesa */
   bloquearTeclasMesa(event: KeyboardEvent) {
@@ -132,6 +261,10 @@ export class ModalRegistrar implements OnChanges {
       this.nuevaPropina[campo] = num;
     }
   }
+
+  // ---------------------------------------------------------------------------
+  // Guardar / cerrar
+  // ---------------------------------------------------------------------------
 
   guardar() {
     // Evita doble envío si ya hay una petición en curso
