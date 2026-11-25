@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TipsService } from '../../../../services/tips';
 
-type TipSource = 1 | 2; // 1 = Mesa, 2 = Pedido
+type TipSource = 1 | 2; 
 
 @Component({
   selector: 'app-modal-registrar',
@@ -27,13 +27,13 @@ export class ModalRegistrar implements OnChanges {
   readonly PROPINA_MAX = 1000;
 
   nuevaPropina: {
-    source: TipSource;            // 🆕 Origen
+    source: TipSource;
     tableNumber: number | null;
     amount: number | null;
     paymentType: number;
     receivedById: number | string;
   } = {
-    source: 1,                    // 🆕 por defecto Mesa
+    source: 1,
     tableNumber: null,
     amount: null,
     paymentType: 1,
@@ -71,6 +71,7 @@ export class ModalRegistrar implements OnChanges {
         receivedById: '',
       };
     }
+
     // Limpiamos mensajes al abrir/cambiar
     this.errorMessage = '';
     this.exitoMessage = '';
@@ -133,13 +134,16 @@ export class ModalRegistrar implements OnChanges {
   }
 
   guardar() {
+    // Evita doble envío si ya hay una petición en curso
+    if (this.isLoading) return;
+
     this.errorMessage = '';
     this.exitoMessage = '';
 
     const esMesa = this.nuevaPropina.source === 1;
     const monto = Number(this.nuevaPropina.amount);
 
-    // ── Validación de N° mesa (solo si es Mesa) ──
+    // Validación de N° mesa (solo si es Mesa)
     if (esMesa) {
       const mesa = Number(this.nuevaPropina.tableNumber);
       if (
@@ -155,7 +159,7 @@ export class ModalRegistrar implements OnChanges {
       }
     }
 
-    // ── Validación de Propina ──
+    // Validación de Propina
     if (
       this.nuevaPropina.amount === null ||
       this.nuevaPropina.amount === undefined ||
@@ -167,7 +171,7 @@ export class ModalRegistrar implements OnChanges {
       return;
     }
 
-    // ── Validación de trabajador ──
+    // Validación de trabajador
     if (!this.nuevaPropina.receivedById) {
       this.errorMessage = 'Por favor, selecciona quién recibió la propina.';
       return;
@@ -188,8 +192,8 @@ export class ModalRegistrar implements OnChanges {
     }
 
     const peticion = this.esEdicion
-      ? this.tipsService.update(this.propinaAEditar.id, payload)   // ✅ antes: updateTip
-      : this.tipsService.create(payload);                          // ✅ antes: createTip
+      ? this.tipsService.update(this.propinaAEditar.id, payload)
+      : this.tipsService.create(payload);
 
     peticion.subscribe({
       next: () => {
@@ -203,7 +207,7 @@ export class ModalRegistrar implements OnChanges {
           this.cerrarModal();
         }, 900);
       },
-      error: (err: any) => {                                       // ✅ antes: (err)
+      error: (err: any) => {
         this.isLoading = false;
         this.errorMessage = err.error?.message || 'Error al guardar la propina.';
       },

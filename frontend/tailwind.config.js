@@ -133,6 +133,10 @@ module.exports = {
         'chip-amarillo-text': '#854d0e',
         'chip-rojo-bg': '#fef2f2',
         'chip-rojo-text': '#991b1b',
+        'chip-morado-bg':   '#F3E8FF', // violeta claro
+        'chip-morado-text': '#7E22CE', // violeta oscuro
+        'chip-naranja-bg':   '#FFEDD5', // naranja claro
+        'chip-naranja-text': '#C2410C', // naranja oscuro        
 
         // Modal
         'modal-bg-encabezado-footer': '#F9FAFB',

@@ -162,6 +162,10 @@ export class TipsService {
         });
         if (!tip) throw new NotFoundException('Propina no encontrada');
 
+        // Guardamos cómo estaba el tip ANTES de cualquier cambio
+        const sourcePrevio: TipSource = tip.source;
+        const tableNumberPrevio: number | null = tip.tableNumber;
+
         const nuevoSource: TipSource = updateTipDto.source ?? tip.source;
         const nuevoTableNumber: number | null =
             nuevoSource === TipSource.MESA
@@ -214,15 +218,18 @@ export class TipsService {
             });
         }
 
+
         if (
+            sourcePrevio === TipSource.MESA &&
             nuevoSource === TipSource.MESA &&
+            tableNumberPrevio !== null &&
             nuevoTableNumber !== null &&
-            Number(nuevoTableNumber) !== Number(tip.tableNumber)
+            Number(nuevoTableNumber) !== Number(tableNumberPrevio)
         ) {
             await this.historyRepository.save({
                 tip,
                 action: ActionType.CAMBIO_MESA,
-                previousData: { tableNumber: tip.tableNumber },
+                previousData: { tableNumber: tableNumberPrevio },
                 newData: { tableNumber: nuevoTableNumber },
                 modifiedBy: { id: userId } as User,
             });

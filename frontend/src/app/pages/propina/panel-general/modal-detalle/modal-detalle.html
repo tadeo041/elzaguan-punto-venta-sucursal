@@ -33,6 +33,47 @@
 
             <!-- 1. INFORMACIÓN ACTUAL -->
             <div class="flex flex-col gap-4 text-sm mb-2">
+
+                <!-- Recibido por -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">Recibido por</span>
+                    <span class="text-gray-800 font-semibold truncate" [title]="detalle.receivedBy?.name ?? ''">{{ detalle.receivedBy?.name ?? '—' }}</span>
+                </div>
+
+                <!-- De dónde viene -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">De dónde viene</span>
+                    @if (detalle.source === 1) {
+                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-bold w-max bg-chip-morado-bg text-chip-morado-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h12A2.25 2.25 0 0120.25 6v12A2.25 2.25 0 0118 20.25H6A2.25 2.25 0 013.75 18V6zM7.5 8.25h9M7.5 12h9M7.5 15.75h5.25" />
+                            </svg>
+                            Mesa
+                        </span>
+                    } @else if (detalle.source === 2) {
+                        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-bold w-max bg-chip-naranja-bg text-chip-naranja-text">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-3.5">
+                                <path fill-rule="evenodd" d="M6 5v1H4.667a1.75 1.75 0 0 0-1.743 1.598l-.826 9.5A1.75 1.75 0 0 0 3.84 19H16.16a1.75 1.75 0 0 0 1.743-1.902l-.826-9.5A1.75 1.75 0 0 0 15.333 6H14V5a4 4 0 0 0-8 0Zm4-2.5A2.5 2.5 0 0 0 7.5 5v1h5V5A2.5 2.5 0 0 0 10 2.5ZM7.5 10a2.5 2.5 0 0 0 5 0V8.75a.75.75 0 0 1 1.5 0V10a4 4 0 0 1-8 0V8.75a.75.75 0 0 1 1.5 0V10Z" clip-rule="evenodd" />
+                            </svg>
+                            Pedido
+                        </span>
+                    }
+                </div>
+
+                <!-- N° Mesa (solo si es Mesa y tiene valor) -->
+                @if (detalle.source === 1 && detalle.tableNumber) {
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">N° Mesa</span>
+                    <span class="text-gray-800">{{ detalle.tableNumber }}</span>
+                </div>
+                }
+
+                <!-- Registro fecha -->
+                <div class="grid grid-cols-2 items-center">
+                    <span class="text-gray-500 font-medium">Registro fecha</span>
+                    <span class="text-gray-800">{{ detalle.createdAt | date:'dd \'de\' MMMM \'del\' yyyy - h:mm a' }}</span>
+                </div>
+
                 <!-- Tipo de pago -->
                 <div class="grid grid-cols-2 items-center">
                     <span class="text-gray-500 font-medium">Tipo de pago</span>
@@ -45,28 +86,10 @@
                     </span>
                 </div>
 
-                <!-- Recibió -->
-                <div class="grid grid-cols-2 items-center">
-                    <span class="text-gray-500 font-medium">Recibió</span>
-                    <span class="text-gray-800 font-semibold truncate" [title]="detalle.receivedBy?.name ?? ''">{{ detalle.receivedBy?.name ?? '—' }}</span>
-                </div>
-
-                <!-- Fecha -->
-                <div class="grid grid-cols-2 items-center">
-                    <span class="text-gray-500 font-medium">Fecha de registro</span>
-                    <span class="text-gray-800">{{ detalle.createdAt | date:'dd \'de\' MMMM \'del\' yyyy - h:mm a' }}</span>
-                </div>
-
                 <!-- Propina -->
                 <div class="grid grid-cols-2 items-center">
                     <span class="text-gray-500 font-medium">Propina</span>
                     <span class="text-gray-800 font-semibold text-base">${{ detalle.amount }}</span>
-                </div>
-
-                <!-- N° Mesa -->
-                <div class="grid grid-cols-2 items-center">
-                    <span class="text-gray-500 font-medium">N° Mesa</span>
-                    <span class="text-gray-800">{{ detalle.tableNumber }}</span>
                 </div>
             </div>
 
@@ -102,115 +125,152 @@
                                     @case ('cambio_entrega') {
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" /></svg>
                                     }
+                                    @case ('cambio_origen') {
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-4 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" /></svg>
+                                    }
                                 }
                             </div>
 
                             <!-- Tarjeta del evento  -->
                             <div class="bg-bg-card-history rounded-2xl border border-border-general p-4 flex-1 ">
-                                <div class="flex justify-between items-start mb-1">
-                                    <h3 class="font-bold text-gray-800 text-base">
-                                        @switch (item.action) {
-                                        @case ('creacion') { Inicio de registro }
-                                        @case ('cambio_receptor') { Cambio de receptor }
-                                        @case ('cambio_monto') { Cambio de propina }
-                                        @case ('cambio_mesa') { Cambio de n° mesa }
-                                        @case ('cambio_entrega') { Cambio entrega de propina }
-                                        }
-                                    </h3>
-                                    <span class="text-base font-bold text-gray-700">{{ item.createdAt | date:'HH:mm' }} hrs</span>
-                                </div>
 
-                                <div class="flex justify-between items-center">
-                                    <p class="text-sm text-gray-600 font-medium">
-                                        @switch (item.action) {
-                                        @case ('creacion') { Se inició el registro }
-                                        @case ('cambio_receptor') { Detalle de reasignación: }
-                                        @case ('cambio_monto') { Detalle del cambio de propina: }
-                                        @case ('cambio_mesa') { Detalle del cambio de n° mesa: }
-                                        @case ('cambio_entrega') { Detalles del cambio de entrega }
-                                        }
-                                    </p>
-                                    <p class="text-xs font-medium text-gray-600">({{ item.createdAt | date:'dd/MM/yyyy' }})</p>
-                                </div>
-
-                                @if (item.action !== 'creacion') {
-                                    <div class="flex flex-col gap-2 mt-2.5">
-
-                                        <!-- Fila ANTERIOR -->
-                                        <div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center">
-                                            <span class="font-bold text-gray-400 text-sm tracking-wide">ANTERIOR</span>
-
-                                            @if (item.action === 'cambio_receptor') {
-                                                <span class="text-sm font-bold text-gray-700">{{ item.previousData?.receivedByName ?? '—' }}</span>
-                                            }
-                                            @if (item.action === 'cambio_monto') {
-                                                <span class="text-sm font-bold text-gray-400">${{ item.previousData?.amount }}</span>
-                                            }
-                                            @if (item.action === 'cambio_mesa') {
-                                                <span class="text-sm font-bold text-gray-700">Mesa {{ item.previousData?.tableNumber }}</span>
-                                            }
-                                            @if (item.action === 'cambio_entrega') {
-                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
-                                                      [ngClass]="item.previousData?.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
-                                                    {{ item.previousData?.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
-                                                </span>
-                                            }
+                                <!-- ¿Es un cambio_mesa sin valor anterior? => "Nuevo n° mesa" -->
+                                @if (item.action === 'cambio_mesa' && !item.previousData?.tableNumber) {
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h3 class="font-bold text-gray-800 text-base">Nuevo n° mesa</h3>
+                                        <span class="text-base font-bold text-gray-700">{{ item.createdAt | date:'HH:mm' }} hrs</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm text-gray-600 font-medium">Se asignó un número de mesa:</p>
+                                        <p class="text-xs font-medium text-gray-600">({{ item.createdAt | date:'dd/MM/yyyy' }})</p>
+                                    </div>
+                                    <div class="mt-2.5">
+                                        <div class="rounded-xl p-3 flex justify-between items-center border border-[#3B82F6] bg-[#EFF6FF]">
+                                            <span class="font-bold text-sm tracking-wide text-[#3B82F6]">NUEVO</span>
+                                            <span class="text-sm font-bold text-[#3B82F6]">Mesa {{ item.newData?.tableNumber }}</span>
                                         </div>
+                                    </div>
+                                } @else {
+                                    <!-- Render normal para todos los demás casos -->
+                                    <div class="flex justify-between items-start mb-1">
+                                        <h3 class="font-bold text-gray-800 text-base">
+                                            @switch (item.action) {
+                                            @case ('creacion') { Inicio de registro }
+                                            @case ('cambio_receptor') { Cambio de receptor }
+                                            @case ('cambio_monto') { Cambio de propina }
+                                            @case ('cambio_mesa') { Cambio de n° mesa }
+                                            @case ('cambio_entrega') { Cambio entrega de propina }
+                                            @case ('cambio_origen') { Cambio de origen }
+                                            }
+                                        </h3>
+                                        <span class="text-base font-bold text-gray-700">{{ item.createdAt | date:'HH:mm' }} hrs</span>
+                                    </div>
 
-                                        <!-- Flecha -->
-                                        <div class="flex justify-center -my-1 text-gray-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
-                                            </svg>
-                                        </div>
+                                    <div class="flex justify-between items-center">
+                                        <p class="text-sm text-gray-600 font-medium">
+                                            @switch (item.action) {
+                                            @case ('creacion') { Se inició el registro }
+                                            @case ('cambio_receptor') { Detalle de reasignación: }
+                                            @case ('cambio_monto') { Detalle del cambio de propina: }
+                                            @case ('cambio_mesa') { Detalle del cambio de n° mesa: }
+                                            @case ('cambio_entrega') { Detalles del cambio de entrega }
+                                            @case ('cambio_origen') { Detalle del cambio de origen }
+                                            }
+                                        </p>
+                                        <p class="text-xs font-medium text-gray-600">({{ item.createdAt | date:'dd/MM/yyyy' }})</p>
+                                    </div>
 
-                                        <!-- Fila NUEVO -->
-                                        <div class="rounded-xl p-3 flex justify-between items-center border" [ngClass]="{
-                                                'border-[#3B82F6] bg-[#EFF6FF]': item.action === 'cambio_receptor' || item.action === 'cambio_mesa',
-                                                'border-green-500 bg-green-50': item.action === 'cambio_monto' && (item.newData?.amount > item.previousData?.amount),
-                                                'border-yellow-500 bg-yellow-50': item.action === 'cambio_monto' && (item.newData?.amount < item.previousData?.amount),
-                                                'border-gray-200 bg-white': item.action === 'cambio_entrega'
-                                             }">
+                                    @if (item.action !== 'creacion') {
+                                        <div class="flex flex-col gap-2 mt-2.5">
 
-                                            <div class="flex items-center gap-2">
-                                                <span class="font-bold text-sm tracking-wide" [ngClass]="{
-                                                        'text-[#3B82F6]': item.action === 'cambio_receptor' || item.action === 'cambio_mesa',
-                                                        'text-green-600': item.action === 'cambio_monto' && (item.newData?.amount > item.previousData?.amount),
-                                                        'text-yellow-600': item.action === 'cambio_monto' && (item.newData?.amount < item.previousData?.amount),
-                                                        'text-gray-400': item.action === 'cambio_entrega'
-                                                      }">
-                                                    NUEVO
-                                                </span>
+                                            <!-- Fila ANTERIOR -->
+                                            <div class="bg-white border border-gray-200 rounded-xl p-3 flex justify-between items-center">
+                                                <span class="font-bold text-gray-400 text-sm tracking-wide">ANTERIOR</span>
 
+                                                @if (item.action === 'cambio_receptor') {
+                                                    <span class="text-sm font-bold text-gray-700">{{ item.previousData?.receivedByName ?? '—' }}</span>
+                                                }
                                                 @if (item.action === 'cambio_monto') {
-                                                    <span class="text-xs px-2 py-0.5 rounded font-bold" [ngClass]="{
-                                                            'bg-green-200 text-green-800': item.newData?.amount > item.previousData?.amount,
-                                                            'bg-yellow-200 text-yellow-800': item.newData?.amount < item.previousData?.amount
-                                                          }">
-                                                        {{ item.newData?.amount > item.previousData?.amount ? '+' : '-' }} ${{ Math.abs(item.newData.amount - item.previousData.amount) }}
+                                                    <span class="text-sm font-bold text-gray-400">${{ item.previousData?.amount }}</span>
+                                                }
+                                                @if (item.action === 'cambio_mesa') {
+                                                    <span class="text-sm font-bold text-gray-700">Mesa {{ item.previousData?.tableNumber }}</span>
+                                                }
+                                                @if (item.action === 'cambio_entrega') {
+                                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
+                                                          [ngClass]="item.previousData?.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                                                        {{ item.previousData?.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                                                    </span>
+                                                }
+                                                @if (item.action === 'cambio_origen') {
+                                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
+                                                          [ngClass]="item.previousData?.source === 1 ? 'bg-chip-morado-bg text-chip-morado-text' : 'bg-chip-naranja-bg text-chip-naranja-text'">
+                                                        {{ item.previousData?.source === 1 ? 'Mesa' : 'Pedido' }}
                                                     </span>
                                                 }
                                             </div>
 
-                                            @if (item.action === 'cambio_receptor') {
-                                                <span class="text-sm font-bold text-[#3B82F6]">{{ item.newData?.receivedByName ?? '—' }}</span>
-                                            }
-                                            @if (item.action === 'cambio_monto') {
-                                                <span class="text-sm font-bold" [ngClass]="item.newData?.amount > item.previousData?.amount ? 'text-green-600' : 'text-yellow-600'">
-                                                    ${{ item.newData?.amount }}
-                                                </span>
-                                            }
-                                            @if (item.action === 'cambio_mesa') {
-                                                <span class="text-sm font-bold text-[#3B82F6]">Mesa {{ item.newData?.tableNumber }}</span>
-                                            }
-                                            @if (item.action === 'cambio_entrega') {
-                                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
-                                                      [ngClass]="item.newData?.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
-                                                    {{ item.newData?.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
-                                                </span>
-                                            }
+                                            <!-- Flecha -->
+                                            <div class="flex justify-center -my-1 text-gray-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-5">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3" />
+                                                </svg>
+                                            </div>
+
+                                            <!-- Fila NUEVO -->
+                                            <div class="rounded-xl p-3 flex justify-between items-center border" [ngClass]="{
+                                                    'border-[#3B82F6] bg-[#EFF6FF]': item.action === 'cambio_receptor' || item.action === 'cambio_mesa' || item.action === 'cambio_origen',
+                                                    'border-green-500 bg-green-50': item.action === 'cambio_monto' && (item.newData?.amount > item.previousData?.amount),
+                                                    'border-yellow-500 bg-yellow-50': item.action === 'cambio_monto' && (item.newData?.amount < item.previousData?.amount),
+                                                    'border-gray-200 bg-white': item.action === 'cambio_entrega'
+                                                 }">
+
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold text-sm tracking-wide" [ngClass]="{
+                                                            'text-[#3B82F6]': item.action === 'cambio_receptor' || item.action === 'cambio_mesa' || item.action === 'cambio_origen',
+                                                            'text-green-600': item.action === 'cambio_monto' && (item.newData?.amount > item.previousData?.amount),
+                                                            'text-yellow-600': item.action === 'cambio_monto' && (item.newData?.amount < item.previousData?.amount),
+                                                            'text-gray-400': item.action === 'cambio_entrega'
+                                                          }">
+                                                        NUEVO
+                                                    </span>
+
+                                                    @if (item.action === 'cambio_monto') {
+                                                        <span class="text-xs px-2 py-0.5 rounded font-bold" [ngClass]="{
+                                                                'bg-green-200 text-green-800': item.newData?.amount > item.previousData?.amount,
+                                                                'bg-yellow-200 text-yellow-800': item.newData?.amount < item.previousData?.amount
+                                                              }">
+                                                            {{ item.newData?.amount > item.previousData?.amount ? '+' : '-' }} ${{ Math.abs(item.newData.amount - item.previousData.amount) }}
+                                                        </span>
+                                                    }
+                                                </div>
+
+                                                @if (item.action === 'cambio_receptor') {
+                                                    <span class="text-sm font-bold text-[#3B82F6]">{{ item.newData?.receivedByName ?? '—' }}</span>
+                                                }
+                                                @if (item.action === 'cambio_monto') {
+                                                    <span class="text-sm font-bold" [ngClass]="item.newData?.amount > item.previousData?.amount ? 'text-green-600' : 'text-yellow-600'">
+                                                        ${{ item.newData?.amount }}
+                                                    </span>
+                                                }
+                                                @if (item.action === 'cambio_mesa') {
+                                                    <span class="text-sm font-bold text-[#3B82F6]">Mesa {{ item.newData?.tableNumber }}</span>
+                                                }
+                                                @if (item.action === 'cambio_entrega') {
+                                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
+                                                          [ngClass]="item.newData?.paymentType === 1 ? 'bg-chip-verde-bg text-chip-verde-text' : 'bg-chip-azul-bg text-chip-azul-text'">
+                                                        {{ item.newData?.paymentType === 1 ? 'Efectivo' : 'Tarjeta' }}
+                                                    </span>
+                                                }
+                                                @if (item.action === 'cambio_origen') {
+                                                    <span class="inline-flex items-center px-2 py-1 rounded text-xs font-bold"
+                                                          [ngClass]="item.newData?.source === 1 ? 'bg-chip-morado-bg text-chip-morado-text' : 'bg-chip-naranja-bg text-chip-naranja-text'">
+                                                        {{ item.newData?.source === 1 ? 'Mesa' : 'Pedido' }}
+                                                    </span>
+                                                }
+                                            </div>
                                         </div>
-                                    </div>
+                                    }
                                 }
                             </div>
                         </div>

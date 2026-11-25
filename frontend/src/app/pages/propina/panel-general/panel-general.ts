@@ -3,7 +3,6 @@ import {
   OnInit,
   OnDestroy,
   ChangeDetectorRef,
-  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +23,14 @@ interface Mesero {
   role?: string;
 }
 
+interface Filtros {
+  receivedById: number | '';
+  paymentType: 1 | 2 | '';
+  source: 1 | 2 | '';
+  startDate: string;
+  endDate: string;
+}
+
 @Component({
   selector: 'app-panel-general',
   standalone: true,
@@ -31,19 +38,23 @@ interface Mesero {
   templateUrl: './panel-general.html',
 })
 export class PanelGeneral implements OnInit, OnDestroy {
-  // ── Filtros ──
-  filtros = {
-    receivedById: '' as number | '',
-    paymentType: '' as 1 | 2 | '',
-    source: '' as 1 | 2 | '',       
-    startDate: '',
-    endDate: '',
+  // ── Filtros que el usuario manipula en los controles ──
+  filtros: Filtros = {
+    receivedById: '',
+    paymentType: '',
+    source: '',
+    startDate: this.hoyISO(),
+    endDate: this.hoyISO(),
   };
+
+  // ── Copia que SOLO se actualiza al pulsar Buscar/Limpiar ──
+  // Es la que se envía al backend y la que alimenta "Filtros aplicados".
+  filtrosAplicados: Filtros = { ...this.filtros };
 
   // ── Chevrón animado de los selects ──
   meseroAbierto = false;
   tipoAbierto = false;
-  origenAbierto = false;             
+  origenAbierto = false;
 
   // ── Estado de la vista ──
   estadoVista: VistaEstado = 'skeleton';
@@ -94,6 +105,19 @@ export class PanelGeneral implements OnInit, OnDestroy {
   }
 
   // ═══════════════════════════════════════════════════════
+  // HELPERS DE FECHA
+  // ═══════════════════════════════════════════════════════
+
+  /** Devuelve la fecha local de hoy en formato YYYY-MM-DD (apto para <input type="date">) */
+  private hoyISO(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  // ═══════════════════════════════════════════════════════
   // CARGA DE DATOS
   // ═══════════════════════════════════════════════════════
 
@@ -115,13 +139,15 @@ export class PanelGeneral implements OnInit, OnDestroy {
     this.estadoVista = 'skeleton';
     this.cdr.detectChanges();
 
+    // ⚠️ Usamos filtrosAplicados (no filtros), así el backend recibe
+    //    solo los filtros que el usuario confirmó con "Buscar".
     this.tipsService
       .findAll({
-        receivedById: this.filtros.receivedById || undefined,
-        paymentType: this.filtros.paymentType || undefined,
-        source: this.filtros.source || undefined,     
-        startDate: this.filtros.startDate || undefined,
-        endDate: this.filtros.endDate || undefined,
+        receivedById: this.filtrosAplicados.receivedById || undefined,
+        paymentType: this.filtrosAplicados.paymentType || undefined,
+        source: this.filtrosAplicados.source || undefined,
+        startDate: this.filtrosAplicados.startDate || undefined,
+        endDate: this.filtrosAplicados.endDate || undefined,
         tzOffsetMin: -new Date().getTimezoneOffset(),
         page: this.currentPage,
         limit: this.pageSize,
@@ -152,6 +178,10 @@ export class PanelGeneral implements OnInit, OnDestroy {
   // ═══════════════════════════════════════════════════════
 
   aplicarFiltros() {
+    // Copiamos los filtros actuales a filtrosAplicados SOLO aquí.
+    // A partir de este momento, "Filtros aplicados" y el backend
+    // reflejan exactamente esta selección.
+    this.filtrosAplicados = { ...this.filtros };
     this.currentPage = 1;
     this.cargarPropinas();
   }
@@ -160,41 +190,44 @@ export class PanelGeneral implements OnInit, OnDestroy {
     this.filtros = {
       receivedById: '',
       paymentType: '',
-      source: '',           // 🆕
-      startDate: '',
-      endDate: '',
+      source: '',
+      startDate: this.hoyISO(),
+      endDate: this.hoyISO(),
     };
+    // También reseteamos la copia aplicada, para que "Filtros aplicados"
+    // se vacíe visualmente y el backend reciba los valores por defecto.
+    this.filtrosAplicados = { ...this.filtros };
     this.currentPage = 1;
     this.cargarPropinas();
   }
 
+  /** Texto de filtros activos leído desde filtrosAplicados (no desde filtros) */
   get textoFiltrosActivos(): string {
     const partes: string[] = [];
+    const f = this.filtrosAplicados;
 
-    if (this.filtros.receivedById) {
+    if (f.receivedById) {
       const mesero = this.meseros.find(
-        (m) => m.id === Number(this.filtros.receivedById),
+        (m) => m.id === Number(f.receivedById),
       );
-      if (mesero) partes.push(`Mesero: ${mesero.name}`);
+      if (mesero) partes.push(`Recibido por: ${mesero.name}`);
     }
 
-    if (this.filtros.paymentType) {
-      const tipo =
-        Number(this.filtros.paymentType) === 1 ? 'Efectivo' : 'Tarjeta';
+    if (f.source) {
+      const origen = Number(f.source) === 1 ? 'Mesa' : 'Pedido';
+      partes.push(`De dónde viene: ${origen}`);
+    }
+
+    if (f.paymentType) {
+      const tipo = Number(f.paymentType) === 1 ? 'Efectivo' : 'Tarjeta';
       partes.push(`Tipo: ${tipo}`);
     }
 
-    if (this.filtros.source) {                          // 🆕
-      const origen =
-        Number(this.filtros.source) === 1 ? 'Mesa' : 'Pedido';
-      partes.push(`Origen: ${origen}`);
+    if (f.startDate) {
+      partes.push(`Desde: ${f.startDate}`);
     }
-
-    if (this.filtros.startDate) {
-      partes.push(`Desde: ${this.filtros.startDate}`);
-    }
-    if (this.filtros.endDate) {
-      partes.push(`Hasta: ${this.filtros.endDate}`);
+    if (f.endDate) {
+      partes.push(`Hasta: ${f.endDate}`);
     }
 
     return partes.join(' · ');

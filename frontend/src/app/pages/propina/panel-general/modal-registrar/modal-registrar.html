@@ -28,7 +28,7 @@
         <!-- Cuerpo del Modal (Con scroll) -->
         <div class="p-6 flex flex-col gap-5 overflow-y-auto shrink">
 
-            <!-- Tooltip de Error (Arriba) - rojo -->
+            <!-- Tooltip de error -->
             @if (errorMessage) {
             <div
                 class="animate-fade-in-left text-input-error-text text-sm font-semibold bg-input-error-bg p-3 rounded-lg border border-input-error-border flex items-center gap-2">
@@ -41,7 +41,7 @@
             </div>
             }
 
-            <!-- Tooltip de Éxito (Arriba) - verde -->
+            <!-- Tooltip de éxito -->
             @if (exitoMessage) {
             <div
                 class="animate-fade-in-left text-green-700 text-sm font-semibold bg-green-50 p-3 rounded-lg border border-green-300 flex items-center gap-2">
@@ -54,25 +54,23 @@
             </div>
             }
 
-            <!-- ═══════════════════════════════════════════════════ -->
-            <!-- Origen de la propina (mismo estilo que pago)        -->
-            <!-- ═══════════════════════════════════════════════════ -->
+            <!-- Origen de la propina -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-label-text">
                     ¿De dónde viene la propina?<span class="text-label-required">*</span>
                 </label>
 
                 <div class="grid grid-cols-2 gap-3">
+
                     <!-- Tarjeta Mesa -->
                     <label class="cursor-pointer h-full">
-                        <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="1" class="peer sr-only">
-
                         <div class="h-full flex items-start gap-3 p-3 border rounded-xl bg-input-bg transition-all"
                              [ngClass]="errorMessage
                                 ? 'border-red-500 ring-1 ring-red-400'
-                                : 'border-input-border peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:ring-1 peer-checked:ring-blue-600'">
+                                : 'border-input-border has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-blue-600'">
 
-                            <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="1"
+                            <!-- Input de donde viene la propina (Mesa) -->
+                            <input type="radio" name="source" [(ngModel)]="nuevaPropina.source" [value]="1"
                                 class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 rounded-full transition-all cursor-pointer"
                                 [ngClass]="errorMessage
                                     ? 'border-red-500 checked:border-red-600 checked:bg-red-600 checked:shadow-[inset_0_0_0_3px_white]'
@@ -87,14 +85,13 @@
 
                     <!-- Tarjeta Pedido -->
                     <label class="cursor-pointer h-full">
-                        <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="2" class="peer sr-only">
-
                         <div class="h-full flex items-start gap-3 p-3 border rounded-xl bg-input-bg transition-all"
                              [ngClass]="errorMessage
                                 ? 'border-red-500 ring-1 ring-red-400'
-                                : 'border-input-border peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:ring-1 peer-checked:ring-blue-600'">
+                                : 'border-input-border has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-blue-600'">
 
-                            <input type="radio" [(ngModel)]="nuevaPropina.source" [value]="2"
+                            <!-- Input de donde viene la propina (Pedido) -->
+                            <input type="radio" name="source" [(ngModel)]="nuevaPropina.source" [value]="2"
                                 class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 rounded-full transition-all cursor-pointer"
                                 [ngClass]="errorMessage
                                     ? 'border-red-500 checked:border-red-600 checked:bg-red-600 checked:shadow-[inset_0_0_0_3px_white]'
@@ -109,23 +106,23 @@
                 </div>
             </div>
 
-            <!-- Seleccione el método de propina -->
+            <!-- Método de propina -->
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-medium text-label-text">
                     Seleccione el método de propina<span class="text-label-required">*</span>
                 </label>
 
                 <div class="grid grid-cols-2 gap-3">
+
                     <!-- Tarjeta Efectivo -->
                     <label class="cursor-pointer h-full">
-                        <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="1" class="peer sr-only">
-
                         <div class="h-full flex items-start gap-3 p-3 border rounded-xl bg-input-bg transition-all"
                              [ngClass]="errorMessage
                                 ? 'border-red-500 ring-1 ring-red-400'
-                                : 'border-input-border peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:ring-1 peer-checked:ring-blue-600'">
+                                : 'border-input-border has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-blue-600'">
 
-                            <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="1"
+                            <!-- Input del método de propina (Efectivo) -->
+                            <input type="radio" name="paymentType" [(ngModel)]="nuevaPropina.paymentType" [value]="1"
                                 class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 rounded-full transition-all cursor-pointer"
                                 [ngClass]="errorMessage
                                     ? 'border-red-500 checked:border-red-600 checked:bg-red-600 checked:shadow-[inset_0_0_0_3px_white]'
@@ -133,22 +130,20 @@
 
                             <div class="flex flex-col">
                                 <span class="text-sm font-semibold text-heading">Efectivo</span>
-                                <span class="text-xs text-muted leading-tight mt-0.5">Propina dejada en la charola en
-                                    efectivo</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Propina dejada en la charola en efectivo</span>
                             </div>
                         </div>
                     </label>
 
                     <!-- Tarjeta Tarjeta -->
                     <label class="cursor-pointer h-full">
-                        <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="2" class="peer sr-only">
-
                         <div class="h-full flex items-start gap-3 p-3 border rounded-xl bg-input-bg transition-all"
                              [ngClass]="errorMessage
                                 ? 'border-red-500 ring-1 ring-red-400'
-                                : 'border-input-border peer-checked:border-blue-600 peer-checked:bg-blue-50 peer-checked:ring-1 peer-checked:ring-blue-600'">
+                                : 'border-input-border has-[:checked]:border-blue-600 has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-blue-600'">
 
-                            <input type="radio" [(ngModel)]="nuevaPropina.paymentType" [value]="2"
+                            <!-- Input del método de propina (Tarjeta) -->
+                            <input type="radio" name="paymentType" [(ngModel)]="nuevaPropina.paymentType" [value]="2"
                                 class="w-5 h-5 mt-0.5 shrink-0 appearance-none border-2 rounded-full transition-all cursor-pointer"
                                 [ngClass]="errorMessage
                                     ? 'border-red-500 checked:border-red-600 checked:bg-red-600 checked:shadow-[inset_0_0_0_3px_white]'
@@ -156,20 +151,20 @@
 
                             <div class="flex flex-col">
                                 <span class="text-sm font-semibold text-heading">Tarjeta</span>
-                                <span class="text-xs text-muted leading-tight mt-0.5">Propina pagado con tarjeta</span>
+                                <span class="text-xs text-muted leading-tight mt-0.5">Propina pagada con tarjeta</span>
                             </div>
                         </div>
                     </label>
                 </div>
             </div>
 
-            <!-- Trabajador recoge propina -->
+            <!-- Trabajador que recibe la propina -->
             <div class="flex flex-col gap-1.5">
                 <label class="text-sm font-medium text-label-text">
                     Selecciona quién recibió la propina<span class="text-label-required">*</span>
                 </label>
                 <div class="relative group">
-                    <!-- Icono usuario: azul al enfocar -->
+                    <!-- Icono usuario -->
                     <div class="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none transition-colors"
                          [ngClass]="errorMessage ? 'text-red-500' : 'text-muted group-focus-within:text-blue-600'">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
@@ -179,6 +174,7 @@
                         </svg>
                     </div>
 
+                    <!-- Select de trabajador -->
                     <select [(ngModel)]="nuevaPropina.receivedById"
                         (change)="errorMessage = ''"
                         (focus)="selectAbierto = true"
@@ -214,7 +210,7 @@
             <!-- N° mesa (solo si es Mesa) y Propina -->
             <div class="grid grid-cols-2 gap-4">
 
-                <!-- N° mesa (solo si source = 1) -->
+                <!-- Input de N° mesa (solo si source = 1) -->
                 @if (nuevaPropina.source === 1) {
                 <div class="flex flex-col gap-1.5">
                     <label class="text-sm font-medium text-label-text">N° mesa<span
@@ -241,7 +237,7 @@
                 </div>
                 }
 
-                <!-- Propina (Monto) — ocupa todo el ancho si es Pedido -->
+                <!-- Input de propina (monto) -->
                 <div class="flex flex-col gap-1.5" [class.col-span-2]="nuevaPropina.source === 2">
                     <label class="text-sm font-medium text-label-text">Propina<span
                             class="text-label-required">*</span></label>
@@ -272,11 +268,11 @@
         <!-- Footer / Botones (Fijo) -->
         <div
             class="p-5 flex justify-end gap-3 bg-modal-bg-encabezado-footer border-t border-border-general shrink-0 rounded-b-2xl">
-            <button (click)="cerrarModal()" [disabled]="isLoading"
+            <button type="button" (click)="cerrarModal()" [disabled]="isLoading"
                 class="px-6 py-2.5 bg-btn-secondary border border-btn-secondary-border text-btn-secondary-text font-medium rounded-lg hover:bg-btn-secondary-hover transition-colors cursor-pointer">
                 Cancelar
             </button>
-            <button (click)="guardar()" [disabled]="isLoading"
+            <button type="button" (click)="guardar()" [disabled]="isLoading"
                 class="px-6 py-2.5 bg-btn-primary hover:bg-btn-primary-hover text-btn-primary-text font-semibold rounded-lg transition-colors cursor-pointer flex items-center justify-center min-w-[100px]">
                 @if (isLoading) {
                 <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
